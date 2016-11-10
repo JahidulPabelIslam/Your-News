@@ -19,10 +19,10 @@
       ]
     },
     {
-      "intent": "LatestScoreOnUserTeamsIntent"
+      "intent": "LatestScoreForUserTeamsIntent"
     },
     {
-      "intent": "LatestScoreOnTeamIntent",
+      "intent": "LatestScoreForTeamIntent",
       "slots": [
         {
           "name": "Team",
@@ -31,10 +31,10 @@
       ]
     },
     {
-      "intent": "LatestNewsOnUserTeamsIntent"
+      "intent": "LatestNewsForUserTeamsIntent"
     },
     {
-      "intent": "LatestNewsOnTeamIntent",
+      "intent": "LatestNewsForTeamIntent",
       "slots": [
         {
           "name": "Team",
@@ -43,10 +43,10 @@
       ]
     },
     {
-      "intent": "NextFixtureOnUserTeamsIntent"
+      "intent": "NextFixtureForUserTeamsIntent"
     },
     {
-      "intent": "NextFixtureOnTeamIntent",
+      "intent": "NextFixtureForTeamIntent",
       "slots": [
         {
           "name": "Team",

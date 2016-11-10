@@ -4,20 +4,20 @@ AddTeamIntent add {Team}
 DeleteTeamIntent delete {Team} from my teams
 DeleteTeamIntent delete {Team}
 
-LatestScoreOnUserTeamsIntent latest score for my teams
-LatestScoreOnUserTeamsIntent what's the latest score for my teams
+LatestScoreForUserTeamsIntent latest score for my teams
+LatestScoreForUserTeamsIntent what's the latest score for my teams
 
-LatestScoreOnTeamIntent latest score for {Team}
-LatestScoreOnTeamIntent what's the latest score for {Team}
+LatestScoreForTeamIntent latest score for {Team}
+LatestScoreForTeamIntent what's the latest score for {Team}
 
-LatestNewsOnUserTeamsIntent latest news for my teams
-LatestNewsOnUserTeamsIntent what's the latest news for my teams
+LatestNewsForUserTeamsIntent latest news for my teams
+LatestNewsForUserTeamsIntent what's the latest news for my teams
 
-LatestNewsOnTeamIntent latest news for {Team}
-LatestNewsOnTeamIntent what's the latest news for {Team}
+LatestNewsForTeamIntent latest news for {Team}
+LatestNewsForTeamIntent what's the latest news for {Team}
 
-NextFixtureOnUserTeamsIntent next fixture for my teams
-NextFixtureOnUserTeamsIntent what's the next fixture for my teams
+NextFixtureForUserTeamsIntent next fixture for my teams
+NextFixtureForUserTeamsIntent what's the next fixture for my teams
 
-NextFixtureOnTeamIntent next fixture for {Team}
-NextFixtureOnTeamIntent what's the next fixture for {Team}
+NextFixtureForTeamIntent next fixture for {Team}
+NextFixtureForTeamIntent what's the next fixture for {Team}
