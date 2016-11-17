@@ -12,7 +12,7 @@
 
 var AWS = require("aws-sdk");
 
-var database = (function () {
+var storage = (function () {
     var dynamodb = new AWS.DynamoDB({apiVersion: '2012-08-10'});
 
     /*
@@ -89,5 +89,7 @@ var database = (function () {
             });
         }
     };
+
 })();
-module.exports = database;
+
+module.exports = storage;
