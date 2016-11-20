@@ -1,6 +1,9 @@
 AddTeamIntent add {Team} to my teams
 AddTeamIntent add {Team}
 
+DeleteTeamsIntent delete all my teams
+DeleteTeamsIntent delete my teams
+
 DeleteTeamIntent delete {Team} from my teams
 DeleteTeamIntent delete {Team}
 

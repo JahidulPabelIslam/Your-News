@@ -9,6 +9,9 @@
         }
       ]
     },
+	{
+      "intent": "DeleteTeamsIntent"
+    },
     {
       "intent": "DeleteTeamIntent",
       "slots": [

@@ -23,7 +23,8 @@ var storage = (function () {
             this.data = data;
         } else {
             this.data = {
-                teams: []
+                teams: [],
+				teamID: {}
             };
         }
         this._session = session;
@@ -87,6 +88,9 @@ var storage = (function () {
                     callback(currentTeams);
                 }
             });
+        },
+		resetTeams: function (session) {
+            return new Teams(session);
         }
     };
 
