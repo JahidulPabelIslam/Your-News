@@ -280,13 +280,60 @@ var registerIntentHandlers = function (intentHandlers, skillContext) {
     };
 
     intentHandlers.LatestNewsForUserTeamsIntent = function (intent, session, response) {
-        var speechOutput = "Latest News for user Team.";
-        response.tell(speechOutput);
+        storage.loadTeams(session, function (currentTeams) {
+            var speechOutput = "", count = 0;
+            currentTeams.data.teams.forEach(function (team) {
+                twitterAPI.getTweet(currentTeams.data.teamID[team], function (error, tweets) {
+                    if (error) {
+                        speechOutput += "Your News service is experiencing a problem getting the latest news for " + team + ". Please try again later.";
+                    }
+                    else if (tweets.length < 1) {
+                        speechOutput += "No news found for your " + team + ".";
+                    }
+                    else {
+                        speechOutput += tweets[0].text;
+                    }
+
+                    count++;
+
+                    if (count >= currentTeams.data.teams.length) response.tell(speechOutput);
+                });
+            });
+        });
     };
 
     intentHandlers.LatestNewsForTeamIntent = function (intent, session, response) {
-        var speechOutput = "Latest News for " + intent.slots.Team.value;
-        response.tell(speechOutput);
+        var teamNameSlot = intent.slots.Team.value;
+        if (!teamNameSlot) {
+            response.ask('OK. what team do you want the score for?', 'what team do you want the score for?');
+            return;
+        }
+        footballAPI.getTeam(teamNameSlot, function (error, teams) {
+            if (error) {
+                response.tell("Sorry, Your News service is experiencing a problem. Please try again later");
+            }
+            else if (teams.length > 1) {
+                response.tell("Sorry, too many teams found, please say your specific team name");
+            }
+            else if (teams.length < 1) {
+                response.tell("Sorry, couldn't find the team you specified");
+            }
+            else {
+                twitterAPI.getTweet(teams[0].name, function (error, tweets) {
+                    var speechOutput = "";
+                    if (error) {
+                        speechOutput += "Your News service is experiencing a problem getting the latest news for " + teams[0].name + ". Please try again later.";
+                    }
+                    else if (tweets.length < 1) {
+                        speechOutput += "No news found for your " + teams[0].name + ".";
+                    }
+                    else {
+                        speechOutput += tweets[0].text;
+                    }
+                    response.tell(speechOutput);
+                });
+            }
+        });
     };
 
     intentHandlers['AMAZON.RepeatIntent'] = function (intent, session, response) {
