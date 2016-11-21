@@ -37,10 +37,10 @@ footballAPI = (function () {
                 callback(e.message);
             });
         },
-        getLastFixture: function (teamID, callback) {
+        getLastFixture: function (teamID, currentTeam, callback) {
             var queryString = "/" + teamID + "/fixtures/?timeFrame=p20";
 
-            http.get(apibase + queryString, function (res) {
+            return http.get(apibase + queryString, function (res) {
                 var apiResponseString = '';
                 console.log('Status Code: ' + res.statusCode);
 
@@ -57,17 +57,18 @@ footballAPI = (function () {
 
                     if (apiResponseObject.error) {
                         console.log("API error: " + apiResponseObject.error.message);
-                        callback(apiResponseObject.error.message);
+                        var test = callback(apiResponseObject.error.message, currentTeam);
+                        return test;
                     } else {
-                        callback(null, apiResponseObject.fixtures);
+                        return callback(null, currentTeam, apiResponseObject.fixtures);
                     }
                 });
             }).on('error', function (e) {
                 console.log("Communications error: " + e.message);
-                callback(e.message);
+                return callback(e.message, currentTeam);
             });
         },
-        getNextFixture: function (teamID, callback) {
+        getNextFixture: function (teamID, currentTeam, callback) {
             var queryString = "/" + teamID + "/fixtures/?timeFrame=n20";
 
             http.get(apibase + queryString, function (res) {
@@ -87,14 +88,14 @@ footballAPI = (function () {
 
                     if (apiResponseObject.error) {
                         console.log("API error: " + apiResponseObject.error.message);
-                        callback(apiResponseObject.error.message);
+                        callback(apiResponseObject.error.message, currentTeam);
                     } else {
-                        callback(null, apiResponseObject.fixtures);
+                        callback(null, currentTeam, apiResponseObject.fixtures);
                     }
                 });
             }).on('error', function (e) {
                 console.log("Communications error: " + e.message);
-                callback(e.message);
+                callback(e.message, currentTeam);
             });
         }
     };

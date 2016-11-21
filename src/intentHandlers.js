@@ -120,18 +120,61 @@ var registerIntentHandlers = function (intentHandlers, skillContext) {
     };
 
     intentHandlers.LatestScoreForTeamIntent = function (intent, session, response) {
-        var speechOutput = "Latest Score for " + intent.slots.Team.value;
-        response.tell(speechOutput);
-    };
-
-    intentHandlers.LatestNewsForUserTeamsIntent = function (intent, session, response) {
-        var speechOutput = "Latest News for user Teams.";
-        response.tell(speechOutput);
-    };
-
-    intentHandlers.LatestNewsForTeamIntent = function (intent, session, response) {
-        var speechOutput = "Latest News for " + intent.slots.Team.value;
-        response.tell(speechOutput);
+        var teamNameSlot = intent.slots.Team.value;
+        if (!teamNameSlot) {
+            response.ask('OK. what team do you want the score for?', 'what team do you want the score for?');
+            return;
+        }
+        footballAPI.getTeam(teamNameSlot, function (error, teams) {
+            if (error) {
+                response.tell("Sorry, Your News service is experiencing a problem. Please try again later");
+            }
+            else if (teams.length > 1) {
+                response.tell("Sorry, too many teams found, please say your specific team name");
+            }
+            else if (teams.length < 1) {
+                response.tell("Sorry, couldn't find the team you specified");
+            }
+            else {
+                footballAPI.getLastFixture(teams[0].id, teamNameSlot, function (error, teamName, fixtures) {
+                    var speechOutput = "";
+                    if (error) {
+                        speechOutput += "Your News service is experiencing a problem getting fixture for " + teamName + ". Please try again later";
+                    }
+                    else if (fixtures.length < 1) {
+                        speechOutput += "No fixture found for your " + teamName + ".";
+                    }
+                    else {
+                        var lastFixture = fixtures[fixtures.length - 1];
+                        if (lastFixture.homeTeamName.toLowerCase() == teamName.toLowerCase()) {
+                            speechOutput += lastFixture.homeTeamName;
+                            if (lastFixture.result.goalsHomeTeam > lastFixture.result.goalsAwayTeam) {
+                                speechOutput += " won against " + lastFixture.awayTeamName + ".";
+                            }
+                            else if (lastFixture.result.goalsHomeTeam < lastFixture.result.goalsAwayTeam) {
+                                speechOutput += " lost against " + lastFixture.awayTeamName + ".";
+                            }
+                            else {
+                                speechOutput += " drew against " + lastFixture.awayTeamName + ".";
+                            }
+                        }
+                        else {
+                            speechOutput += lastFixture.awayTeamName;
+                            if (lastFixture.result.goalsAwayTeam > lastFixture.result.goalsHomeTeam) {
+                                speechOutput += " won against " + lastFixture.homeTeamName + ".";
+                            }
+                            else if (lastFixture.result.goalsAwayTeam < lastFixture.result.goalsHomeTeam) {
+                                speechOutput += " lost against " + lastFixture.homeTeamName + ".";
+                            }
+                            else {
+                                speechOutput += " drew against " + lastFixture.homeTeamName + ".";
+                            }
+                        }
+                    }
+                    response.tell(speechOutput);
+                });
+            }
+        });
     };
 
     intentHandlers.NextFixtureForUserTeamsIntent = function (intent, session, response) {
@@ -140,8 +183,57 @@ var registerIntentHandlers = function (intentHandlers, skillContext) {
     };
 
     intentHandlers.NextFixtureForTeamIntent = function (intent, session, response) {
-        var speechOutput = "Next Fixture for " + intent.slots.Team.value;
+        var teamNameSlot = intent.slots.Team.value;
+        if (!teamNameSlot) {
+            response.ask('OK. what team do you want the score for?', 'what team do you want the score for?');
+            return;
+        }
+        footballAPI.getTeam(teamNameSlot, function (error, teams) {
+            if (error) {
+                response.tell("Sorry, Your News service is experiencing a problem. Please try again later");
+            }
+            else if (teams.length > 1) {
+                response.tell("Sorry, too many teams found, please say your specific team name");
+            }
+            else if (teams.length < 1) {
+                response.tell("Sorry, couldn't find the team you specified");
+            }
+            else {
+                footballAPI.getNextFixture(teams[0].id, teamNameSlot, function (error, teamName, fixtures) {
+                    var speechOutput = "";
+                    if (error) {
+                        speechOutput += "Your News service is experiencing a problem getting fixture for " + teamName + ". Please try again later";
+                    }
+                    else if (fixtures.length < 1) {
+                        speechOutput += "No fixture found for your " + teamName + ".";
+                    }
+                    else {
+                        var lastFixture = fixtures[0];
+                        if (lastFixture.homeTeamName.toLowerCase() == teamName.toLowerCase()) {
+                            speechOutput += lastFixture.homeTeamName + " play " + lastFixture.awayTeamName + " next.";
+                        }
+                        else {
+                            speechOutput += lastFixture.awayTeamName + " play " + lastFixture.homeTeamName + " next.";
+                        }
+                    }
+                    response.tell(speechOutput);
+                });
+            }
+        });
+    };
+
+    intentHandlers.LatestNewsForUserTeamsIntent = function (intent, session, response) {
+        var speechOutput = "Next Fixture for user Team.";
         response.tell(speechOutput);
+    };
+
+    intentHandlers.LatestNewsForTeamIntent = function (intent, session, response) {
+        var speechOutput = "Latest News for " + intent.slots.Team.value;
+        response.tell(speechOutput);
+    };
+
+    intentHandlers['AMAZON.RepeatIntent'] = function (intent, session, response) {
+        response.tell('Repeating');
     };
 
     intentHandlers['AMAZON.HelpIntent'] = function (intent, session, response) {
@@ -152,10 +244,6 @@ var registerIntentHandlers = function (intentHandlers, skillContext) {
         }
     };
 
-    intentHandlers['AMAZON.RepeatIntent'] = function (intent, session, response) {
-        response.tell('Repeating');
-    };
-    
     intentHandlers['AMAZON.CancelIntent'] = function (intent, session, response) {
         response.tell('Bye.');
     };
