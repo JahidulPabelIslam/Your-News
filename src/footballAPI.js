@@ -2,104 +2,103 @@
 
 var http = require('http'),
 
-apibase = 'http://api.football-data.org/v1/teams',
+    apibase = 'http://api.football-data.org/v1/teams',
 
-footballAPI = (function () {
+    footballAPI = (function () {
 
-    return {
-        getTeam: function (teamName, callback) {
-            var queryString = '?name=' + teamName;
+        return {
+            getTeam: function (teamName, callback) {
+                var queryString = '?name=' + teamName;
 
-            http.get(apibase + queryString, function (res) {
-                var apiResponseString = '';
-                console.log('Status Code: ' + res.statusCode);
+                http.get(apibase + queryString, function (res) {
+                    var apiResponseString = '';
+                    console.log('Status Code: ' + res.statusCode);
 
-                if (res.statusCode != 200) {
-                    console.log("Non 200 Response");
-                }
-
-                res.on('data', function (data) {
-                    apiResponseString += data;
-                });
-
-                res.on('end', function () {
-                    var apiResponseObject = JSON.parse(apiResponseString);
-
-                    if (apiResponseObject.error) {
-                        console.log("API error: " + apiResponseObject.error.message);
-                        callback(apiResponseObject.error.message);
-                    } else {
-                        callback(null, apiResponseObject.teams);
+                    if (res.statusCode != 200) {
+                        console.log("Non 200 Response");
                     }
+
+                    res.on('data', function (data) {
+                        apiResponseString += data;
+                    });
+
+                    res.on('end', function () {
+                        var apiResponseObject = JSON.parse(apiResponseString);
+
+                        if (apiResponseObject.error) {
+                            console.log("API error: " + apiResponseObject.error.message);
+                            callback(apiResponseObject.error.message);
+                        } else {
+                            callback(null, apiResponseObject.teams);
+                        }
+                    });
+                }).on('error', function (e) {
+                    console.log("Communications error: " + e.message);
+                    callback(e.message);
                 });
-            }).on('error', function (e) {
-                console.log("Communications error: " + e.message);
-                callback(e.message);
-            });
-        },
-        getLastFixture: function (teamID, currentTeam, callback) {
-            var queryString = "/" + teamID + "/fixtures/?timeFrame=p20";
+            },
+            getLastFixture: function (teamID, callback) {
+                var queryString = "/" + teamID + "/fixtures/?timeFrame=p20";
 
-            return http.get(apibase + queryString, function (res) {
-                var apiResponseString = '';
-                console.log('Status Code: ' + res.statusCode);
+                http.get(apibase + queryString, function (res) {
+                    var apiResponseString = '';
+                    console.log('Status Code: ' + res.statusCode);
 
-                if (res.statusCode != 200) {
-                    console.log("Non 200 Response");
-                }
-
-                res.on('data', function (data) {
-                    apiResponseString += data;
-                });
-
-                res.on('end', function () {
-                    var apiResponseObject = JSON.parse(apiResponseString);
-
-                    if (apiResponseObject.error) {
-                        console.log("API error: " + apiResponseObject.error.message);
-                        var test = callback(apiResponseObject.error.message, currentTeam);
-                        return test;
-                    } else {
-                        return callback(null, currentTeam, apiResponseObject.fixtures);
+                    if (res.statusCode != 200) {
+                        console.log("Non 200 Response");
                     }
+
+                    res.on('data', function (data) {
+                        apiResponseString += data;
+                    });
+
+                    res.on('end', function () {
+                        var apiResponseObject = JSON.parse(apiResponseString);
+
+                        if (apiResponseObject.error) {
+                            console.log("API error: " + apiResponseObject.error.message);
+                            callback(apiResponseObject.error.message);
+                        } else {
+                            callback(null, apiResponseObject.fixtures);
+                        }
+                    });
+                }).on('error', function (e) {
+                    console.log("Communications error: " + e.message);
+                     callback(e.message);
                 });
-            }).on('error', function (e) {
-                console.log("Communications error: " + e.message);
-                return callback(e.message, currentTeam);
-            });
-        },
-        getNextFixture: function (teamID, currentTeam, callback) {
-            var queryString = "/" + teamID + "/fixtures/?timeFrame=n20";
+            },
+            getNextFixture: function (teamID, callback) {
+                var queryString = "/" + teamID + "/fixtures/?timeFrame=n20";
 
-            http.get(apibase + queryString, function (res) {
-                var apiResponseString = '';
-                console.log('Status Code: ' + res.statusCode);
+                http.get(apibase + queryString, function (res) {
+                    var apiResponseString = '';
+                    console.log('Status Code: ' + res.statusCode);
 
-                if (res.statusCode != 200) {
-                    console.log("Non 200 Response");
-                }
-
-                res.on('data', function (data) {
-                    apiResponseString += data;
-                });
-
-                res.on('end', function () {
-                    var apiResponseObject = JSON.parse(apiResponseString);
-
-                    if (apiResponseObject.error) {
-                        console.log("API error: " + apiResponseObject.error.message);
-                        callback(apiResponseObject.error.message, currentTeam);
-                    } else {
-                        callback(null, currentTeam, apiResponseObject.fixtures);
+                    if (res.statusCode != 200) {
+                        console.log("Non 200 Response");
                     }
-                });
-            }).on('error', function (e) {
-                console.log("Communications error: " + e.message);
-                callback(e.message, currentTeam);
-            });
-        }
-    };
 
-})();
+                    res.on('data', function (data) {
+                        apiResponseString += data;
+                    });
+
+                    res.on('end', function () {
+                        var apiResponseObject = JSON.parse(apiResponseString);
+
+                        if (apiResponseObject.error) {
+                            console.log("API error: " + apiResponseObject.error.message);
+                            callback(apiResponseObject.error.message);
+                        } else {
+                            callback(null, apiResponseObject.fixtures);
+                        }
+                    });
+                }).on('error', function (e) {
+                    console.log("Communications error: " + e.message);
+                    callback(e.message);
+                });
+            }
+        };
+
+    })();
 
 module.exports = footballAPI;

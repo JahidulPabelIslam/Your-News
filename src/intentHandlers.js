@@ -1,13 +1,3 @@
-/**
- Copyright 2014-2015 Amazon.com, Inc. or its affiliates. All Rights Reserved.
-
- Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file except in compliance with the License. A copy of the License is located at
-
- http://aws.amazon.com/apache2.0/
-
- or in the "license" file accompanying this file. This file is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
- */
-
 'use strict';
 
 var textHelper = require('./textHelper'),
@@ -115,8 +105,51 @@ var registerIntentHandlers = function (intentHandlers, skillContext) {
     };
 
     intentHandlers.LatestScoreForUserTeamsIntent = function (intent, session, response) {
-        var speechOutput = "Latest Score for User Teams.";
-        response.tell(speechOutput);
+        storage.loadTeams(session, function (currentTeams) {
+            var speechOutput = "", count = 0;
+            currentTeams.data.teams.forEach(function (team) {
+                footballAPI.getLastFixture(currentTeams.data.teamID[team], function (error, fixtures) {
+                    if (error) {
+                        speechOutput += "Your News service is experiencing a problem getting fixture for " + team + ". Please try again later";
+                    }
+                    else if (fixtures.length < 1) {
+                        speechOutput += "No fixture found for your " + team + ".";
+                    }
+                    else {
+                        var lastFixture = fixtures[fixtures.length - 1];
+                        if (lastFixture.homeTeamName.toLowerCase() == team.toLowerCase()) {
+                            speechOutput += lastFixture.homeTeamName;
+                            if (lastFixture.result.goalsHomeTeam > lastFixture.result.goalsAwayTeam) {
+                                speechOutput += " won against " + lastFixture.awayTeamName + ".";
+                            }
+                            else if (lastFixture.result.goalsHomeTeam < lastFixture.result.goalsAwayTeam) {
+                                speechOutput += " lost against " + lastFixture.awayTeamName + ".";
+                            }
+                            else {
+                                speechOutput += " drew against " + lastFixture.awayTeamName + ".";
+                            }
+                        }
+                        else {
+                            speechOutput += lastFixture.awayTeamName;
+                            if (lastFixture.result.goalsAwayTeam > lastFixture.result.goalsHomeTeam) {
+                                speechOutput += " won against " + lastFixture.homeTeamName + ".";
+                            }
+                            else if (lastFixture.result.goalsAwayTeam < lastFixture.result.goalsHomeTeam) {
+                                speechOutput += " lost against " + lastFixture.homeTeamName + ".";
+                            }
+                            else {
+                                speechOutput += " drew against " + lastFixture.homeTeamName + ".";
+                            }
+                        }
+                    }
+
+                    count++;
+
+                    if (count >= currentTeams.data.teams.length) response.tell(speechOutput);
+                });
+            });
+
+        });
     };
 
     intentHandlers.LatestScoreForTeamIntent = function (intent, session, response) {
@@ -136,17 +169,17 @@ var registerIntentHandlers = function (intentHandlers, skillContext) {
                 response.tell("Sorry, couldn't find the team you specified");
             }
             else {
-                footballAPI.getLastFixture(teams[0].id, teamNameSlot, function (error, teamName, fixtures) {
+                footballAPI.getLastFixture(teams[0].id, function (error, fixtures) {
                     var speechOutput = "";
                     if (error) {
-                        speechOutput += "Your News service is experiencing a problem getting fixture for " + teamName + ". Please try again later";
+                        speechOutput += "Your News service is experiencing a problem getting fixture for " + teams[0].name + ". Please try again later";
                     }
                     else if (fixtures.length < 1) {
-                        speechOutput += "No fixture found for your " + teamName + ".";
+                        speechOutput += "No fixture found for your " + teams[0].name + ".";
                     }
                     else {
                         var lastFixture = fixtures[fixtures.length - 1];
-                        if (lastFixture.homeTeamName.toLowerCase() == teamName.toLowerCase()) {
+                        if (lastFixture.homeTeamName.toLowerCase() == teams[0].name.toLowerCase()) {
                             speechOutput += lastFixture.homeTeamName;
                             if (lastFixture.result.goalsHomeTeam > lastFixture.result.goalsAwayTeam) {
                                 speechOutput += " won against " + lastFixture.awayTeamName + ".";
@@ -178,8 +211,32 @@ var registerIntentHandlers = function (intentHandlers, skillContext) {
     };
 
     intentHandlers.NextFixtureForUserTeamsIntent = function (intent, session, response) {
-        var speechOutput = "Next Fixture for user Team.";
-        response.tell(speechOutput);
+        storage.loadTeams(session, function (currentTeams) {
+            var speechOutput = "", count = 0;
+            currentTeams.data.teams.forEach(function (team) {
+                footballAPI.getNextFixture(currentTeams.data.teamID[team], function (error, fixtures) {
+                    if (error) {
+                        speechOutput += "Your News service is experiencing a problem getting fixture for " + team + ". Please try again later";
+                    }
+                    else if (fixtures.length < 1) {
+                        speechOutput += "No fixture found for your " + team + ".";
+                    }
+                    else {
+                        var nextFixture = fixtures[0];
+                        if (nextFixture.homeTeamName.toLowerCase() == team.toLowerCase()) {
+                            speechOutput += nextFixture.homeTeamName + " play " + nextFixture.awayTeamName + " next.";
+                        }
+                        else {
+                            speechOutput += nextFixture.awayTeamName + " play " + nextFixture.homeTeamName + " next.";
+                        }
+                    }
+
+                    count++;
+
+                    if (count >= currentTeams.data.teams.length) response.tell(speechOutput);
+                });
+            });
+        });
     };
 
     intentHandlers.NextFixtureForTeamIntent = function (intent, session, response) {
@@ -199,21 +256,21 @@ var registerIntentHandlers = function (intentHandlers, skillContext) {
                 response.tell("Sorry, couldn't find the team you specified");
             }
             else {
-                footballAPI.getNextFixture(teams[0].id, teamNameSlot, function (error, teamName, fixtures) {
+                footballAPI.getNextFixture(teams[0].id, function (error, fixtures) {
                     var speechOutput = "";
                     if (error) {
-                        speechOutput += "Your News service is experiencing a problem getting fixture for " + teamName + ". Please try again later";
+                        speechOutput += "Your News service is experiencing a problem getting fixture for " + teams[0].name + ". Please try again later";
                     }
                     else if (fixtures.length < 1) {
-                        speechOutput += "No fixture found for your " + teamName + ".";
+                        speechOutput += "No fixture found for your " + teams[0].name + ".";
                     }
                     else {
-                        var lastFixture = fixtures[0];
-                        if (lastFixture.homeTeamName.toLowerCase() == teamName.toLowerCase()) {
-                            speechOutput += lastFixture.homeTeamName + " play " + lastFixture.awayTeamName + " next.";
+                        var nextFixture = fixtures[0];
+                        if (nextFixture.homeTeamName.toLowerCase() == teams[0].name.toLowerCase()) {
+                            speechOutput += nextFixture.homeTeamName + " play " + nextFixture.awayTeamName + " next.";
                         }
                         else {
-                            speechOutput += lastFixture.awayTeamName + " play " + lastFixture.homeTeamName + " next.";
+                            speechOutput += nextFixture.awayTeamName + " play " + nextFixture.homeTeamName + " next.";
                         }
                     }
                     response.tell(speechOutput);
@@ -223,7 +280,7 @@ var registerIntentHandlers = function (intentHandlers, skillContext) {
     };
 
     intentHandlers.LatestNewsForUserTeamsIntent = function (intent, session, response) {
-        var speechOutput = "Next Fixture for user Team.";
+        var speechOutput = "Latest News for user Team.";
         response.tell(speechOutput);
     };
 
