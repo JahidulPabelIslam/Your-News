@@ -44,9 +44,7 @@ var registerIntentHandlers = function (intentHandlers, skillContext) {
             session.attributes.action = "add";
             response.ask("Who do you want to add?", "Who do you want to add?");
         }
-        else {
-            addTeam(session, response, skillContext, newTeamName);
-        }
+        addTeam(session, response, skillContext, newTeamName);
     };
 
     intentHandlers.ResetTeamsIntent = function (intent, session, response) {
@@ -66,9 +64,7 @@ var registerIntentHandlers = function (intentHandlers, skillContext) {
             session.attributes.action = "delete";
             response.ask("Who do you want to delete?", "Who do you want to delete?");
         }
-        else {
-            deleteTeam(session, response, skillContext, teamName);
-        }
+        deleteTeam(session, response, skillContext, teamName);
     };
 
     intentHandlers.LatestScoreForUserTeamsIntent = function (intent, session, response) {
@@ -76,43 +72,9 @@ var registerIntentHandlers = function (intentHandlers, skillContext) {
             var speechOutput = "", count = 0;
             if (currentTeams.data.teams.length > 0) {
                 currentTeams.data.teams.forEach(function (team) {
-                    footballAPI.getLastFixture(currentTeams.data.teamID[team], function (error, fixtures) {
-                        if (error) {
-                            speechOutput += "Your News service is experiencing a problem getting fixture for " + team + ". Please try again later";
-                        }
-                        else if (fixtures.length < 1) {
-                            speechOutput += "No fixture found for " + team + ".";
-                        }
-                        else {
-                            var lastFixture = fixtures[fixtures.length - 1];
-                            if (lastFixture.homeTeamName.toLowerCase() == team.toLowerCase()) {
-                                speechOutput += lastFixture.homeTeamName;
-                                if (lastFixture.result.goalsHomeTeam > lastFixture.result.goalsAwayTeam) {
-                                    speechOutput += " won against " + lastFixture.awayTeamName + ".";
-                                }
-                                else if (lastFixture.result.goalsHomeTeam < lastFixture.result.goalsAwayTeam) {
-                                    speechOutput += " lost against " + lastFixture.awayTeamName + ".";
-                                }
-                                else {
-                                    speechOutput += " drew against " + lastFixture.awayTeamName + ".";
-                                }
-                            }
-                            else {
-                                speechOutput += lastFixture.awayTeamName;
-                                if (lastFixture.result.goalsAwayTeam > lastFixture.result.goalsHomeTeam) {
-                                    speechOutput += " won against " + lastFixture.homeTeamName + ".";
-                                }
-                                else if (lastFixture.result.goalsAwayTeam < lastFixture.result.goalsHomeTeam) {
-                                    speechOutput += " lost against " + lastFixture.homeTeamName + ".";
-                                }
-                                else {
-                                    speechOutput += " drew against " + lastFixture.homeTeamName + ".";
-                                }
-                            }
-                        }
-
+                    getScore(session, response, skillContext, team, function (speechOutput2) {
+                        speechOutput += speechOutput2;
                         count++;
-
                         if (count >= currentTeams.data.teams.length) response.tell(speechOutput);
                     });
                 });
@@ -130,7 +92,9 @@ var registerIntentHandlers = function (intentHandlers, skillContext) {
             session.attributes.action = "score";
             response.ask("What team do you want the score for?", "what team do you want the score for?");
         }
-        getScore(session, response, skillContext, teamName);
+        getScore(session, response, skillContext, teamName, function (speechOutput) {
+            response.tell(speechOutput);
+        });
     };
 
     intentHandlers.NextFixtureForUserTeamsIntent = function (intent, session, response) {
@@ -138,25 +102,9 @@ var registerIntentHandlers = function (intentHandlers, skillContext) {
             var speechOutput = "", count = 0;
             if (currentTeams.data.teams.length > 0) {
                 currentTeams.data.teams.forEach(function (team) {
-                    footballAPI.getNextFixture(currentTeams.data.teamID[team], function (error, fixtures) {
-                        if (error) {
-                            speechOutput += "Your News service is experiencing a problem getting fixture for " + team + ". Please try again later";
-                        }
-                        else if (fixtures.length < 1) {
-                            speechOutput += "No fixture found for your " + team + ".";
-                        }
-                        else {
-                            var nextFixture = fixtures[0];
-                            if (nextFixture.homeTeamName.toLowerCase() == team.toLowerCase()) {
-                                speechOutput += nextFixture.homeTeamName + " play " + nextFixture.awayTeamName + " next.";
-                            }
-                            else {
-                                speechOutput += nextFixture.awayTeamName + " play " + nextFixture.homeTeamName + " next.";
-                            }
-                        }
-
+                    getNextFixture(session, response, skillContext, team, function (speechOutput2) {
+                        speechOutput += speechOutput2;
                         count++;
-
                         if (count >= currentTeams.data.teams.length) response.tell(speechOutput);
                     });
                 });
@@ -174,7 +122,9 @@ var registerIntentHandlers = function (intentHandlers, skillContext) {
             session.attributes.action = "next fixture";
             response.ask("What team do you want the next fixture for?", "What team do you want the next fixture for?");
         }
-        getNextFixture(session, response, skillContext, teamName);
+        getNextFixture(session, response, skillContext, teamName, function (speechOutput) {
+            response.tell(speechOutput);
+        });
     };
 
     intentHandlers.LatestNewsForUserTeamsIntent = function (intent, session, response) {
@@ -182,19 +132,9 @@ var registerIntentHandlers = function (intentHandlers, skillContext) {
             var speechOutput = "", count = 0;
             if (currentTeams.data.teams.length > 0) {
                 currentTeams.data.teams.forEach(function (team) {
-                    twitterAPI.getTweet(currentTeams.data.teamID[team], function (error, tweets) {
-                        if (error) {
-                            speechOutput += "Your News service is experiencing a problem getting the latest news for " + team + ". Please try again later.";
-                        }
-                        else if (tweets.length < 1) {
-                            speechOutput += "No news found for your " + team + "."
-                        }
-                        else {
-                            speechOutput += tweets[0].text + ".";
-                        }
-
+                    getLatestNews(session, response, skillContext, team, function (speechOutput2) {
+                        speechOutput += speechOutput2;
                         count++;
-
                         if (count >= currentTeams.data.teams.length) response.tell(speechOutput);
                     });
                 });
@@ -212,7 +152,9 @@ var registerIntentHandlers = function (intentHandlers, skillContext) {
             session.attributes.action = "next fixture";
             response.ask("What team do you want the latest news for?", "What team do you want the latest news for?");
         }
-        getLatestNews(session, response, skillContext, teamName);
+        getLatestNews(session, response, skillContext, teamName, function (speechOutput) {
+            response.tell(speechOutput);
+        });
     };
 
     intentHandlers["AMAZON.RepeatIntent"] = function (intent, session, response) {
@@ -307,7 +249,7 @@ var addTeam = function (session, response, skillContext, teamName) {
                             response.tell(speechOutput);
                         });
                     } else {
-                        speechOutput = teams[0].name + " isn\"t on your list of favourite teams.";
+                        speechOutput = teams[0].name + " isn\'t on your list of favourite teams.";
                         response.tell(speechOutput);
                     }
                 }
@@ -315,16 +257,16 @@ var addTeam = function (session, response, skillContext, teamName) {
         });
     },
 
-    getScore = function (session, response, skillContext, teamName) {
+    getScore = function (session, response, skillContext, teamName, callback) {
         footballAPI.getTeam(teamName, function (error, teams) {
             if (error) {
-                response.tell("Sorry, Your News service is experiencing a problem. Please try again later.");
+                callback("Sorry, Your News service is experiencing a problem. Please try again later.");
             }
             else if (teams.length > 1) {
-                response.tell("Sorry, too many teams found, please say your specific team name.");
+                callback("Sorry, too many teams found, please say your specific team name.");
             }
             else if (teams.length < 1) {
-                response.tell("Sorry, couldn't find the team you specified.");
+                callback("Sorry, couldn't find the team you specified.");
             }
             else {
                 footballAPI.getLastFixture(teams[0].id, function (error, fixtures) {
@@ -340,44 +282,44 @@ var addTeam = function (session, response, skillContext, teamName) {
                         if (lastFixture.homeTeamName.toLowerCase() == teams[0].name.toLowerCase()) {
                             speechOutput += lastFixture.homeTeamName;
                             if (lastFixture.result.goalsHomeTeam > lastFixture.result.goalsAwayTeam) {
-                                speechOutput += " won against " + lastFixture.awayTeamName + ".";
+                                speechOutput += " won " + lastFixture.result.goalsHomeTeam + " "  + lastFixture.result.goalsAwayTeam + " against " + lastFixture.awayTeamName + ".";
                             }
                             else if (lastFixture.result.goalsHomeTeam < lastFixture.result.goalsAwayTeam) {
-                                speechOutput += " lost against " + lastFixture.awayTeamName + ".";
+                                speechOutput += " lost " + lastFixture.result.goalsHomeTeam + " " + lastFixture.result.goalsAwayTeam + " against " + lastFixture.awayTeamName + ".";
                             }
                             else {
-                                speechOutput += " drew against " + lastFixture.awayTeamName + ".";
+                                speechOutput += " drew " + lastFixture.result.goalsHomeTeam + " " + lastFixture.result.goalsAwayTeam + " with " + lastFixture.awayTeamName + ".";
                             }
                         }
                         else {
                             speechOutput += lastFixture.awayTeamName;
                             if (lastFixture.result.goalsAwayTeam > lastFixture.result.goalsHomeTeam) {
-                                speechOutput += " won against " + lastFixture.homeTeamName + ".";
+                                speechOutput += " won " + lastFixture.result.goalsAwayTeam +" " + lastFixture.result.goalsHomeTeam + " against " + lastFixture.homeTeamName + ".";
                             }
                             else if (lastFixture.result.goalsAwayTeam < lastFixture.result.goalsHomeTeam) {
-                                speechOutput += " lost against " + lastFixture.homeTeamName + ".";
+                                speechOutput += " lost " + lastFixture.result.goalsAwayTeam + " " + lastFixture.result.goalsHomeTeam + " against " + lastFixture.homeTeamName + ".";
                             }
                             else {
-                                speechOutput += " drew against " + lastFixture.homeTeamName + ".";
+                                speechOutput += " drew " + lastFixture.result.goalsAwayTeam + " " + lastFixture.result.goalsHomeTeam + "with " + lastFixture.homeTeamName + ".";
                             }
                         }
                     }
-                    response.tell(speechOutput);
+                    callback(speechOutput);
                 });
             }
         });
     },
 
-    getNextFixture = function (session, response, skillContext, teamName) {
+    getNextFixture = function (session, response, skillContext, teamName, callback) {
         footballAPI.getTeam(teamName, function (error, teams) {
             if (error) {
-                response.tell("Sorry, Your News service is experiencing a problem. Please try again later.");
+                callback("Sorry, Your News service is experiencing a problem. Please try again later.");
             }
             else if (teams.length > 1) {
-                response.tell("Sorry, too many teams found, please say your specific team name.");
+                callback("Sorry, too many teams found, please say your specific team name.");
             }
             else if (teams.length < 1) {
-                response.tell("Sorry, couldn't find the team you specified.");
+                callback("Sorry, couldn't find the team you specified.");
             }
             else {
                 footballAPI.getNextFixture(teams[0].id, function (error, fixtures) {
@@ -397,22 +339,22 @@ var addTeam = function (session, response, skillContext, teamName) {
                             speechOutput += nextFixture.awayTeamName + " play " + nextFixture.homeTeamName + " next.";
                         }
                     }
-                    response.tell(speechOutput);
+                    callback(speechOutput);
                 });
             }
         });
     },
 
-    getLatestNews = function (session, response, skillContext, teamName) {
+    getLatestNews = function (session, response, skillContext, teamName, callback) {
         footballAPI.getTeam(teamName, function (error, teams) {
             if (error) {
-                response.tell("Sorry, Your News service is experiencing a problem. Please try again later.");
+                callback("Sorry, Your News service is experiencing a problem. Please try again later.");
             }
             else if (teams.length > 1) {
-                response.tell("Sorry, too many teams found, please say your specific team name.");
+                callback("Sorry, too many teams found, please say your specific team name.");
             }
             else if (teams.length < 1) {
-                response.tell("Sorry, couldn't find the team you specified.");
+                callback("Sorry, couldn't find the team you specified.");
             }
             else {
                 twitterAPI.getTweet(teams[0].name, function (error, tweets) {
@@ -426,7 +368,7 @@ var addTeam = function (session, response, skillContext, teamName) {
                     else {
                         speechOutput += tweets[0].text + ".";
                     }
-                    response.tell(speechOutput);
+                    callback(speechOutput);
                 });
             }
         });
