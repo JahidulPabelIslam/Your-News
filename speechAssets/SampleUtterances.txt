@@ -1,26 +1,78 @@
-AddTeamIntent add {Team} to my teams
-AddTeamIntent add {Team}
+TeamIntent {Team}
 
-DeleteTeamsIntent delete all my teams
-DeleteTeamsIntent delete my teams
+AddTeamIntent add {Team} to my teams
+AddTeamIntent add {Team} to my list
+AddTeamIntent add {Team} to my favourites list
+AddTeamIntent add {Team} to my favourite list
+AddTeamIntent add {Team} to my favourite
+AddTeamIntent add {Team} to my favourites
+AddTeamIntent add {Team}
+AddTeamIntent add
+
+ResetTeamsIntent reset
+ResetTeamsIntent reset my teams
+ResetTeamsIntent reset all my teams
+ResetTeamsIntent reset my favourites list
+ResetTeamsIntent reset my favourites
+ResetTeamsIntent reset my list
 
 DeleteTeamIntent delete {Team} from my teams
+DeleteTeamIntent delete {Team} from my list
+DeleteTeamIntent delete {Team} from my favourites list
+DeleteTeamIntent delete {Team} from my favourites
 DeleteTeamIntent delete {Team}
+DeleteTeamIntent delete
 
 LatestScoreForUserTeamsIntent latest score for my teams
+LatestScoreForUserTeamsIntent latest score for all my teams
+LatestScoreForUserTeamsIntent what is the latest score for my teams
+LatestScoreForUserTeamsIntent what is the latest score for all my teams
 LatestScoreForUserTeamsIntent what's the latest score for my teams
+LatestScoreForUserTeamsIntent what's the latest score for all my teams
+LatestScoreForUserTeamsIntent latest score for my favourites
+LatestScoreForUserTeamsIntent latest score for all my favourites
+LatestScoreForUserTeamsIntent what is the latest score for my favourites
+LatestScoreForUserTeamsIntent what is the latest score for all my favourites
+LatestScoreForUserTeamsIntent what's the latest score for my favourites
+LatestScoreForUserTeamsIntent what's the latest score for all my favourites
 
+LatestScoreForTeamIntent latest score
 LatestScoreForTeamIntent latest score for {Team}
 LatestScoreForTeamIntent what's the latest score for {Team}
+LatestScoreForTeamIntent what is the latest score for {Team}
 
 LatestNewsForUserTeamsIntent latest news for my teams
+LatestNewsForUserTeamsIntent latest news for all my teams
+LatestNewsForUserTeamsIntent what is the latest news for my teams
+LatestNewsForUserTeamsIntent what is the latest news for all my teams
 LatestNewsForUserTeamsIntent what's the latest news for my teams
+LatestNewsForUserTeamsIntent what's the latest news for all my teams
+LatestNewsForUserTeamsIntent latest news for my favourites
+LatestNewsForUserTeamsIntent latest news for all my favourites
+LatestNewsForUserTeamsIntent what is the latest news for my favourites
+LatestNewsForUserTeamsIntent what is the latest news for all my favourites
+LatestNewsForUserTeamsIntent what's the latest news for my favourites
+LatestNewsForUserTeamsIntent what's the latest news for all my favourites
 
+LatestNewsForTeamIntent latest news
 LatestNewsForTeamIntent latest news for {Team}
 LatestNewsForTeamIntent what's the latest news for {Team}
+LatestNewsForTeamIntent what is the latest news for {Team}
 
 NextFixtureForUserTeamsIntent next fixture for my teams
+NextFixtureForUserTeamsIntent next fixture for all my teams
+NextFixtureForUserTeamsIntent what is the next fixture for my teams
+NextFixtureForUserTeamsIntent what is the next fixture for all my teams
 NextFixtureForUserTeamsIntent what's the next fixture for my teams
+NextFixtureForUserTeamsIntent what's the next fixture for all my teams
+NextFixtureForUserTeamsIntent next fixture for my favourites
+NextFixtureForUserTeamsIntent next fixture for all my favourites
+NextFixtureForUserTeamsIntent what is the next fixture for my favourites
+NextFixtureForUserTeamsIntent what is the next fixture for all my favourites
+NextFixtureForUserTeamsIntent what's the next fixture for my favourites
+NextFixtureForUserTeamsIntent what's the next fixture for all my favourites
 
+NextFixtureForTeamIntent next fixture
 NextFixtureForTeamIntent next fixture for {Team}
 NextFixtureForTeamIntent what's the next fixture for {Team}
+NextFixtureForTeamIntent what is the next fixture for {Team}

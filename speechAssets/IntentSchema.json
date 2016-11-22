@@ -1,6 +1,15 @@
 {
   "intents": [
     {
+      "intent": "TeamIntent",
+      "slots": [
+        {
+          "name": "Team",
+          "type": "LIST_OF_TEAMS"
+        }
+      ]
+    },
+    {
       "intent": "AddTeamIntent",
       "slots": [
         {
@@ -10,7 +19,7 @@
       ]
     },
 	{
-      "intent": "DeleteTeamsIntent"
+      "intent": "ResetTeamsIntent"
     },
     {
       "intent": "DeleteTeamIntent",
