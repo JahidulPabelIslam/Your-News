@@ -1,6 +1,6 @@
 "use strict";
 
-var textHelper = require("./textHelper"),
+var helperFunctions = require("./helperFunctions"),
     footballAPI = require("./footballAPI"),
     twitterAPI = require("./twitterAPI"),
     storage = require("./storage");
@@ -181,11 +181,11 @@ var registerIntentHandlers = function (intentHandlers, skillContext) {
 
     intentHandlers["AMAZON.HelpIntent"] = function (intent, session, response) {
         if (skillContext.needMoreHelp) {
-            session.attributes.speechOutput = textHelper.completeHelp + " So, how can I help?";
+            session.attributes.speechOutput = helperFunctions.completeHelp + " So, how can I help?";
             session.attributes.repromptText = "How can I help?";
-            response.ask(textHelper.completeHelp + " So, how can I help?", "How can I help?");
+            response.ask(helperFunctions.completeHelp + " So, how can I help?", "How can I help?");
         }
-        response.tell(textHelper.completeHelp);
+        response.tell(helperFunctions.completeHelp);
     };
 
     intentHandlers["AMAZON.CancelIntent"] = function (intent, session, response) {
@@ -220,7 +220,7 @@ var addTeam = function (session, response, skillContext, teamName) {
                         currentTeams.data.teamID[teams[0].name] = teams[0].id;
                         if (skillContext.needMoreHelp) {
                             speechOutput += " What else?";
-                            repromptText = textHelper.nextHelp;
+                            repromptText = helperFunctions.nextHelp;
                         }
                         currentTeams.save(function () {
                             if (repromptText) {
@@ -273,37 +273,52 @@ var addTeam = function (session, response, skillContext, teamName) {
             } else if (teams.length < 1) {
                 callback(" Sorry, couldn't find the team you specified.");
             } else {
-                footballAPI.getLastFixture(teams[0].id, function (error, fixtures) {
-                    var speechOutput = " ";
-                    if (error) {
-                        speechOutput += "Your News service is experiencing a problem getting fixture for " + teams[0].name + ". Please try again later.";
-                    }
-                    else if (fixtures.length < 1) {
-                        speechOutput += "No fixture found for your " + teams[0].name + ".";
-                    } else {
-                        var lastFixture = fixtures[fixtures.length - 1];
-                        if (lastFixture.homeTeamName.toLowerCase() == teams[0].name.toLowerCase()) {
-                            speechOutput += lastFixture.homeTeamName;
-                            if (lastFixture.result.goalsHomeTeam > lastFixture.result.goalsAwayTeam) {
-                                speechOutput += " won " + lastFixture.result.goalsHomeTeam + " " + lastFixture.result.goalsAwayTeam + " against " + lastFixture.awayTeamName + ".";
+                footballAPI.getNextFixture(teams[0].id, function (error, fixtures) {
+                    if (fixtures.length > 1) {
+                        var nextFixture = fixtures[0], speechOutput = "",
+                            gameDate = new Date(nextFixture.date),
+                            currentDate = new Date();
+                        if (gameDate.getDate() == currentDate.getDate() && gameDate.getMonth() == currentDate.getMonth() && gameDate.getFullYear() == currentDate.getFullYear() && (nextFixture.status == "IN_PLAY" || nextFixture.status == "FINISHED" || nextFixture.status == "CANCELED" || nextFixture.status == "POSTPONED")) {
+                            if (nextFixture.status == "FINISHED") {
+                                speechOutput += getLatestScoreString(nextFixture, teams[0].name);
+                            } else if (nextFixture.status == "IN_PLAY") {
+                                speechOutput += getCurrentScoreString(nextFixture, teams[0].name);
+                            } else if (nextFixture.status == "CANCELED") {
+                                speechOutput += getCanceledScoreString(nextFixture, teams[0].name);
+                            } else if (nextFixture.status == "POSTPONED") {
+                                speechOutput += getPostponedScoreString(nextFixture, teams[0].name);
                             }
-                            else if (lastFixture.result.goalsHomeTeam < lastFixture.result.goalsAwayTeam) {
-                                speechOutput += " lost " + lastFixture.result.goalsHomeTeam + " " + lastFixture.result.goalsAwayTeam + " against " + lastFixture.awayTeamName + ".";
-                            } else {
-                                speechOutput += " drew " + lastFixture.result.goalsHomeTeam + " " + lastFixture.result.goalsAwayTeam + " with " + lastFixture.awayTeamName + ".";
-                            }
-                        } else {
-                            speechOutput += lastFixture.awayTeamName;
-                            if (lastFixture.result.goalsAwayTeam > lastFixture.result.goalsHomeTeam) {
-                                speechOutput += " won " + lastFixture.result.goalsAwayTeam + " " + lastFixture.result.goalsHomeTeam + " against " + lastFixture.homeTeamName + ".";
-                            } else if (lastFixture.result.goalsAwayTeam < lastFixture.result.goalsHomeTeam) {
-                                speechOutput += " lost " + lastFixture.result.goalsAwayTeam + " " + lastFixture.result.goalsHomeTeam + " against " + lastFixture.homeTeamName + ".";
-                            } else {
-                                speechOutput += " drew " + lastFixture.result.goalsAwayTeam + " " + lastFixture.result.goalsHomeTeam + "with " + lastFixture.homeTeamName + ".";
-                            }
+                            callback(speechOutput);
+                            return;
                         }
                     }
-                    callback(speechOutput);
+                    footballAPI.getLastFixture(teams[0].id, function (error, fixtures) {
+                        var speechOutput = " ";
+                        if (error) {
+                            speechOutput += "Your News service is experiencing a problem getting fixture for " + teams[0].name + ". Please try again later.";
+                        }
+                        else if (fixtures.length < 1) {
+                            speechOutput += "No fixture found for " + teams[0].name + ".";
+                        } else {
+                            var lastFixture = fixtures[fixtures.length - 1];
+                            if (lastFixture.status == "FINISHED") {
+                                speechOutput += getLatestScoreString(lastFixture, teams[0].name);
+                            } else if (lastFixture.status == "IN_PLAY") {
+                                speechOutput += getCurrentScoreString(lastFixture, teams[0].name);
+                            } else if (lastFixture.status == "CANCELED") {
+                                speechOutput += getCanceledScoreString(lastFixture, teams[0].name);
+                            } else if (lastFixture.status == "POSTPONED") {
+                                speechOutput += getPostponedScoreString(lastFixture, teams[0].name);
+                            } else {
+                                if (lastFixture.homeTeamName.toLowerCase() == teams[0].name.toLowerCase()) {
+                                    speechOutput += lastFixture.homeTeamName + " play " + lastFixture.awayTeamName + " next." + helperFunctions.getDate(lastFixture.date) + ".";
+                                } else {
+                                    speechOutput += lastFixture.awayTeamName + " play " + lastFixture.homeTeamName + " next." + helperFunctions.getDate(lastFixture.date) + ".";
+                                }
+                            }
+                        }
+                        callback(speechOutput);
+                    });
                 });
             }
         });
@@ -325,11 +340,25 @@ var addTeam = function (session, response, skillContext, teamName) {
                     } else if (fixtures.length < 1) {
                         speechOutput += "No fixtures found for " + teams[0].name + ".";
                     } else {
-                        var nextFixture = fixtures[0];
-                        if (nextFixture.homeTeamName.toLowerCase() == teams[0].name.toLowerCase()) {
-                            speechOutput += nextFixture.homeTeamName + " play " + nextFixture.awayTeamName + " next.";
-                        } else {
-                            speechOutput += nextFixture.awayTeamName + " play " + nextFixture.homeTeamName + " next.";
+                        for (var i = 0; i < fixtures.length; i++) {
+                            var nextFixture = fixtures[i];
+                            if (nextFixture.status == "IN_PLAY") {
+                                speechOutput += getCurrentScoreString(nextFixture, teams[0].name);
+                                break;
+                            } else if (nextFixture.status == "CANCELED") {
+                                speechOutput += getCanceledScoreString(nextFixture, teams[0].name);
+                                break;
+                            } else if (nextFixture.status == "POSTPONED") {
+                                speechOutput += getPostponedScoreString(nextFixture, teams[0].name);
+                                break;
+                            } else if (nextFixture.status == "TIMED" || nextFixture.status == "SCHEDULED" ){
+                                if (nextFixture.homeTeamName.toLowerCase() == teams[0].name.toLowerCase()) {
+                                    speechOutput += "Next game for " + nextFixture.homeTeamName + " is versus " + nextFixture.awayTeamName + helperFunctions.getDate(nextFixture.date) + ".";
+                                } else {
+                                    speechOutput += "Next game for " + nextFixture.awayTeamName + " is versus " + nextFixture.homeTeamName + helperFunctions.getDate(nextFixture.date) + ".";
+                                }
+                                break;
+                            }
                         }
                     }
                     callback(speechOutput);
@@ -401,6 +430,93 @@ var addTeam = function (session, response, skillContext, teamName) {
             }
             callback(speechOutput);
         });
+    },
+
+    getCurrentScoreString = function (fixture, teamName) {
+        var speechOutput = "Currently ";
+        if (fixture.homeTeamName.toLowerCase() == teamName.toLowerCase()) {
+            speechOutput += fixture.homeTeamName;
+            if (fixture.result.goalsHomeTeam > fixture.result.goalsAwayTeam) {
+                speechOutput += " are winning " + fixture.result.goalsHomeTeam + " " + fixture.result.goalsAwayTeam + " against " + fixture.awayTeamName + ".";
+            }
+            else if (fixture.result.goalsHomeTeam < fixture.result.goalsAwayTeam) {
+                speechOutput += " are losing " + fixture.result.goalsAwayTeam + " " + fixture.result.goalsHomeTeam + " against " + fixture.awayTeamName + ".";
+            } else {
+                speechOutput += " are drawing " + fixture.result.goalsHomeTeam + " " + fixture.result.goalsAwayTeam + " with " + fixture.awayTeamName + ".";
+            }
+
+        } else {
+            speechOutput += fixture.awayTeamName;
+            if (fixture.result.goalsAwayTeam > fixture.result.goalsHomeTeam) {
+                speechOutput += " are wining " + fixture.result.goalsAwayTeam + " " + fixture.result.goalsHomeTeam + " against " + fixture.homeTeamName + ".";
+            } else if (fixture.result.goalsAwayTeam < fixture.result.goalsHomeTeam) {
+                speechOutput += " are losing " + fixture.result.goalsHomeTeam + " " + fixture.result.goalsAwayTeam + " against " + fixture.homeTeamName + ".";
+            } else {
+                speechOutput += " are drawing " + fixture.result.goalsAwayTeam + " " + fixture.result.goalsHomeTeam + " with " + fixture.homeTeamName + ".";
+            }
+
+        }
+        return speechOutput;
+    },
+
+    getCanceledScoreString = function (fixture, teamName) {
+        var speechOutput = "";
+        if (fixture.homeTeamName.toLowerCase() == teamName.toLowerCase()) {
+            speechOutput += fixture.homeTeamName;
+            if (fixture.result.goalsHomeTeam > fixture.result.goalsAwayTeam) {
+                speechOutput += " were winning " + fixture.result.goalsHomeTeam + " " + fixture.result.goalsAwayTeam + " against " + fixture.awayTeamName + helperFunctions.getDate(fixture.date) + " but is canceled.";
+            }
+            else if (fixture.result.goalsHomeTeam < fixture.result.goalsAwayTeam) {
+                speechOutput += " were losing " + fixture.result.goalsAwayTeam + " " + fixture.result.goalsHomeTeam + " against " + fixture.awayTeamName + helperFunctions.getDate(fixture.date) + " but is canceled.";
+            } else {
+                speechOutput += " were drawing " + fixture.result.goalsHomeTeam + " " + fixture.result.goalsAwayTeam + " with " + fixture.awayTeamName + helperFunctions.getDate(fixture.date) + " but is canceled.";
+            }
+        } else {
+            speechOutput += fixture.awayTeamName;
+            if (fixture.result.goalsAwayTeam > fixture.result.goalsHomeTeam) {
+                speechOutput += " were wining " + fixture.result.goalsAwayTeam + " " + fixture.result.goalsHomeTeam + " against " + fixture.homeTeamName + helperFunctions.getDate(fixture.date) + " but is canceled.";
+            } else if (fixture.result.goalsAwayTeam < fixture.result.goalsHomeTeam) {
+                speechOutput += " were losing " + fixture.result.goalsHomeTeam + " " + fixture.result.goalsAwayTeam + " against " + fixture.homeTeamName + helperFunctions.getDate(fixture.date) + " but is canceled.";
+            } else {
+                speechOutput += " were drawing " + fixture.result.goalsAwayTeam + " " + fixture.result.goalsHomeTeam + " with " + fixture.homeTeamName + helperFunctions.getDate(fixture.date) + " but is canceled.";
+            }
+        }
+        return speechOutput;
+    },
+
+    getPostponedScoreString = function (fixture, teamName) {
+        var speechOutput = "";
+        if (fixture.homeTeamName.toLowerCase() == teamName.toLowerCase()) {
+            speechOutput += fixture.homeTeamName + " were supposed to play " + fixture.awayTeamName + helperFunctions.getDate(nextFixture.date) + " but is postponed.";
+        } else {
+            speechOutput += fixture.awayTeamName + " were supposed to play " + fixture.homeTeamName + helperFunctions.getDate(nextFixture.date) + " but is postponed.";
+        }
+        return speechOutput;
+    },
+
+    getLatestScoreString = function (fixture, teamName) {
+        var speechOutput = "";
+        if (fixture.homeTeamName.toLowerCase() == teamName.toLowerCase()) {
+            speechOutput += fixture.homeTeamName;
+            if (fixture.result.goalsHomeTeam > fixture.result.goalsAwayTeam) {
+                speechOutput += " won " + fixture.result.goalsHomeTeam + " " + fixture.result.goalsAwayTeam + " against " + fixture.awayTeamName + helperFunctions.getDate(fixture.date) + ".";
+            }
+            else if (fixture.result.goalsHomeTeam < fixture.result.goalsAwayTeam) {
+                speechOutput += " lost " + fixture.result.goalsAwayTeam + " " + fixture.result.goalsHomeTeam + " against " + fixture.awayTeamName + helperFunctions.getDate(fixture.date) + ".";
+            } else {
+                speechOutput += " drew " + fixture.result.goalsHomeTeam + " " + fixture.result.goalsAwayTeam + " with " + fixture.awayTeamName + helperFunctions.getDate(fixture.date) + ".";
+            }
+        } else {
+            speechOutput += fixture.awayTeamName;
+            if (fixture.result.goalsAwayTeam > fixture.result.goalsHomeTeam) {
+                speechOutput += " won " + fixture.result.goalsAwayTeam + " " + fixture.result.goalsHomeTeam + " against " + fixture.homeTeamName + helperFunctions.getDate(fixture.date) + ".";
+            } else if (fixture.result.goalsAwayTeam < fixture.result.goalsHomeTeam) {
+                speechOutput += " lost " + fixture.result.goalsHomeTeam + " " + fixture.result.goalsAwayTeam + " against " + fixture.homeTeamName + helperFunctions.getDate(fixture.date) + ".";
+            } else {
+                speechOutput += " drew " + fixture.result.goalsAwayTeam + " " + fixture.result.goalsHomeTeam + " with " + fixture.homeTeamName + helperFunctions.getDate(fixture.date) + ".";
+            }
+        }
+        return speechOutput;
     };
 
 exports.register = registerIntentHandlers;

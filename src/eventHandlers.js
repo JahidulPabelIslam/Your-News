@@ -1,7 +1,7 @@
 'use strict';
 
 var storage = require('./storage'),
-    textHelper = require('./textHelper');
+    textHelper = require('./helperFunctions');
 
 var registerEventHandlers = function (eventHandlers, skillContext) {
     eventHandlers.onSessionStarted = function (sessionStartedRequest, session) {
