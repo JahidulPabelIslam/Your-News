@@ -2,6 +2,7 @@
 
 var textHelper = require("./textHelper"),
     footballAPI = require("./footballAPI"),
+    twitterAPI = require("./twitterAPI"),
     storage = require("./storage");
 
 var registerIntentHandlers = function (intentHandlers, skillContext) {
@@ -73,9 +74,13 @@ var registerIntentHandlers = function (intentHandlers, skillContext) {
             if (currentTeams.data.teams.length > 0) {
                 currentTeams.data.teams.forEach(function (team) {
                     getScore(session, response, skillContext, team, function (speechOutput2) {
-                        speechOutput += speechOutput2;
+                        speechOutput += speechOutput2 + " And";
                         count++;
-                        if (count >= currentTeams.data.teams.length) response.tell(speechOutput);
+                        if (count >= currentTeams.data.teams.length) {
+                            var lastIndex = speechOutput.lastIndexOf(" ");
+                            speechOutput = speechOutput.slice(0, lastIndex);
+                            response.tell(speechOutput);
+                        }
                     });
                 });
             } else {
@@ -103,9 +108,13 @@ var registerIntentHandlers = function (intentHandlers, skillContext) {
             if (currentTeams.data.teams.length > 0) {
                 currentTeams.data.teams.forEach(function (team) {
                     getNextFixture(session, response, skillContext, team, function (speechOutput2) {
-                        speechOutput += speechOutput2;
+                        speechOutput += speechOutput2 + " And";
                         count++;
-                        if (count >= currentTeams.data.teams.length) response.tell(speechOutput);
+                        if (count >= currentTeams.data.teams.length) {
+                            var lastIndex = speechOutput.lastIndexOf(" ");
+                            speechOutput = speechOutput.slice(0, lastIndex);
+                            response.tell(speechOutput);
+                        }
                     });
                 });
             } else {
@@ -133,9 +142,13 @@ var registerIntentHandlers = function (intentHandlers, skillContext) {
             if (currentTeams.data.teams.length > 0) {
                 currentTeams.data.teams.forEach(function (team) {
                     getLatestNews(session, response, skillContext, team, function (speechOutput2) {
-                        speechOutput += speechOutput2;
+                        speechOutput += speechOutput2 + " And";
                         count++;
-                        if (count >= currentTeams.data.teams.length) response.tell(speechOutput);
+                        if (count >= currentTeams.data.teams.length) {
+                            var lastIndex = speechOutput.lastIndexOf(" ");
+                            speechOutput = speechOutput.slice(0, lastIndex);
+                            response.tell(speechOutput);
+                        }
                     });
                 });
             } else {
@@ -190,14 +203,11 @@ var addTeam = function (session, response, skillContext, teamName) {
             footballAPI.getTeam(teamName, function (error, teams) {
                 if (error) {
                     response.tell("Sorry, Your News service is experiencing a problem. Please try again later.");
-                }
-                else if (teams.length > 1) {
+                } else if (teams.length > 1) {
                     response.tell("Sorry, too many teams found, please say your specific team name.");
-                }
-                else if (teams.length < 1) {
+                } else if (teams.length < 1) {
                     response.tell("Sorry, couldn't find the team you specified.");
-                }
-                else {
+                } else {
                     if (currentTeams.data.teamID[teams[0].name] !== undefined) {
                         speechOutput = teamName + " has already joined the list.";
                         if (skillContext.needMoreHelp) {
@@ -230,14 +240,11 @@ var addTeam = function (session, response, skillContext, teamName) {
             footballAPI.getTeam(teamName, function (error, teams) {
                 if (error) {
                     response.tell("Sorry, Your News service is experiencing a problem. Please try again later.");
-                }
-                else if (teams.length > 1) {
+                } else if (teams.length > 1) {
                     response.tell("Sorry, too many teams found, please say your specific team name.");
-                }
-                else if (teams.length < 1) {
+                } else if (teams.length < 1) {
                     response.tell("Sorry, couldn't find the team you specified.");
-                }
-                else {
+                } else {
                     if (currentTeams.data.teamID[teams[0].name] !== undefined) {
                         var index = currentTeams.data.teams.indexOf(teams[0].name);
                         currentTeams.data.teams.splice(index, 1);
@@ -260,46 +267,38 @@ var addTeam = function (session, response, skillContext, teamName) {
     getScore = function (session, response, skillContext, teamName, callback) {
         footballAPI.getTeam(teamName, function (error, teams) {
             if (error) {
-                callback("Sorry, Your News service is experiencing a problem. Please try again later.");
-            }
-            else if (teams.length > 1) {
-                callback("Sorry, too many teams found, please say your specific team name.");
-            }
-            else if (teams.length < 1) {
-                callback("Sorry, couldn't find the team you specified.");
-            }
-            else {
+                callback(" Sorry, Your News service is experiencing a problem. Please try again later.");
+            } else if (teams.length > 1) {
+                callback(" Sorry, too many teams found, please say your specific team name.");
+            } else if (teams.length < 1) {
+                callback(" Sorry, couldn't find the team you specified.");
+            } else {
                 footballAPI.getLastFixture(teams[0].id, function (error, fixtures) {
-                    var speechOutput = "";
+                    var speechOutput = " ";
                     if (error) {
                         speechOutput += "Your News service is experiencing a problem getting fixture for " + teams[0].name + ". Please try again later.";
                     }
                     else if (fixtures.length < 1) {
                         speechOutput += "No fixture found for your " + teams[0].name + ".";
-                    }
-                    else {
+                    } else {
                         var lastFixture = fixtures[fixtures.length - 1];
                         if (lastFixture.homeTeamName.toLowerCase() == teams[0].name.toLowerCase()) {
                             speechOutput += lastFixture.homeTeamName;
                             if (lastFixture.result.goalsHomeTeam > lastFixture.result.goalsAwayTeam) {
-                                speechOutput += " won " + lastFixture.result.goalsHomeTeam + " "  + lastFixture.result.goalsAwayTeam + " against " + lastFixture.awayTeamName + ".";
+                                speechOutput += " won " + lastFixture.result.goalsHomeTeam + " " + lastFixture.result.goalsAwayTeam + " against " + lastFixture.awayTeamName + ".";
                             }
                             else if (lastFixture.result.goalsHomeTeam < lastFixture.result.goalsAwayTeam) {
                                 speechOutput += " lost " + lastFixture.result.goalsHomeTeam + " " + lastFixture.result.goalsAwayTeam + " against " + lastFixture.awayTeamName + ".";
-                            }
-                            else {
+                            } else {
                                 speechOutput += " drew " + lastFixture.result.goalsHomeTeam + " " + lastFixture.result.goalsAwayTeam + " with " + lastFixture.awayTeamName + ".";
                             }
-                        }
-                        else {
+                        } else {
                             speechOutput += lastFixture.awayTeamName;
                             if (lastFixture.result.goalsAwayTeam > lastFixture.result.goalsHomeTeam) {
-                                speechOutput += " won " + lastFixture.result.goalsAwayTeam +" " + lastFixture.result.goalsHomeTeam + " against " + lastFixture.homeTeamName + ".";
-                            }
-                            else if (lastFixture.result.goalsAwayTeam < lastFixture.result.goalsHomeTeam) {
+                                speechOutput += " won " + lastFixture.result.goalsAwayTeam + " " + lastFixture.result.goalsHomeTeam + " against " + lastFixture.homeTeamName + ".";
+                            } else if (lastFixture.result.goalsAwayTeam < lastFixture.result.goalsHomeTeam) {
                                 speechOutput += " lost " + lastFixture.result.goalsAwayTeam + " " + lastFixture.result.goalsHomeTeam + " against " + lastFixture.homeTeamName + ".";
-                            }
-                            else {
+                            } else {
                                 speechOutput += " drew " + lastFixture.result.goalsAwayTeam + " " + lastFixture.result.goalsHomeTeam + "with " + lastFixture.homeTeamName + ".";
                             }
                         }
@@ -313,29 +312,23 @@ var addTeam = function (session, response, skillContext, teamName) {
     getNextFixture = function (session, response, skillContext, teamName, callback) {
         footballAPI.getTeam(teamName, function (error, teams) {
             if (error) {
-                callback("Sorry, Your News service is experiencing a problem. Please try again later.");
-            }
-            else if (teams.length > 1) {
-                callback("Sorry, too many teams found, please say your specific team name.");
-            }
-            else if (teams.length < 1) {
-                callback("Sorry, couldn't find the team you specified.");
-            }
-            else {
+                callback(" Sorry, Your News service is experiencing a problem. Please try again later.");
+            } else if (teams.length > 1) {
+                callback(" Sorry, too many teams found, please say your specific team name.");
+            } else if (teams.length < 1) {
+                callback(" Sorry, couldn't find the team you specified.");
+            } else {
                 footballAPI.getNextFixture(teams[0].id, function (error, fixtures) {
-                    var speechOutput = "";
+                    var speechOutput = " ";
                     if (error) {
                         speechOutput += "Your News service is experiencing a problem getting fixture for " + teams[0].name + ". Please try again later.";
-                    }
-                    else if (fixtures.length < 1) {
+                    } else if (fixtures.length < 1) {
                         speechOutput += "No fixture found for your " + teams[0].name + ".";
-                    }
-                    else {
+                    } else {
                         var nextFixture = fixtures[0];
                         if (nextFixture.homeTeamName.toLowerCase() == teams[0].name.toLowerCase()) {
                             speechOutput += nextFixture.homeTeamName + " play " + nextFixture.awayTeamName + " next.";
-                        }
-                        else {
+                        } else {
                             speechOutput += nextFixture.awayTeamName + " play " + nextFixture.homeTeamName + " next.";
                         }
                     }
@@ -348,29 +341,30 @@ var addTeam = function (session, response, skillContext, teamName) {
     getLatestNews = function (session, response, skillContext, teamName, callback) {
         footballAPI.getTeam(teamName, function (error, teams) {
             if (error) {
-                callback("Sorry, Your News service is experiencing a problem. Please try again later.");
+                callback(" Sorry, Your News service is experiencing a problem. Please try again later.");
+            } else if (teams.length > 1) {
+                callback(" Sorry, too many teams found, please say your specific team name.");
+            } else if (teams.length < 1) {
+                callback(" Sorry, couldn't find the team you specified.");
+            } else {
+                getTweet(teamName, teams[0].name, callback);
             }
-            else if (teams.length > 1) {
-                callback("Sorry, too many teams found, please say your specific team name.");
+        });
+    },
+
+    getTweet = function (teamName, query, callback) {
+        twitterAPI.getTweet(query, function (error, tweets) {
+            var speechOutput = " ";
+            if (error) {
+                speechOutput += "Your News service is experiencing a problem getting the latest news for " + teamName + ". Please try again later.";
+            } else if (tweets.length < 1) {
+                speechOutput += "No news found for " + teamName + ".";
+            } else {
+                speechOutput += "Latest News for " + teamName + ": " + tweets[0].text + ".";
+                var urlExpression = /[-a-zA-Z0-9@:%_\+.~#?&//=]{2,256}\.[a-z]{2,4}\b(\/[-a-zA-Z0-9@:%_\+.~#?&//=]*)?/gi;
+                speechOutput = speechOutput.replace(urlExpression, "");
             }
-            else if (teams.length < 1) {
-                callback("Sorry, couldn't find the team you specified.");
-            }
-            else {
-                twitterAPI.getTweet(teams[0].name, function (error, tweets) {
-                    var speechOutput = "";
-                    if (error) {
-                        speechOutput += "Your News service is experiencing a problem getting the latest news for " + teams[0].name + ". Please try again later.";
-                    }
-                    else if (tweets.length < 1) {
-                        speechOutput += "No news found for your " + teams[0].name + ".";
-                    }
-                    else {
-                        speechOutput += tweets[0].text + ".";
-                    }
-                    callback(speechOutput);
-                });
-            }
+            callback(speechOutput);
         });
     };
 
