@@ -321,9 +321,9 @@ var addTeam = function (session, response, skillContext, teamName) {
                 footballAPI.getNextFixture(teams[0].id, function (error, fixtures) {
                     var speechOutput = " ";
                     if (error) {
-                        speechOutput += "Your News service is experiencing a problem getting fixture for " + teams[0].name + ". Please try again later.";
+                        speechOutput += "Your News service is experiencing a problem getting next fixture for " + teams[0].name + ". Please try again later.";
                     } else if (fixtures.length < 1) {
-                        speechOutput += "No fixture found for your " + teams[0].name + ".";
+                        speechOutput += "No fixtures found for " + teams[0].name + ".";
                     } else {
                         var nextFixture = fixtures[0];
                         if (nextFixture.homeTeamName.toLowerCase() == teams[0].name.toLowerCase()) {
@@ -347,7 +347,41 @@ var addTeam = function (session, response, skillContext, teamName) {
             } else if (teams.length < 1) {
                 callback(" Sorry, couldn't find the team you specified.");
             } else {
-                getTweet(teamName, teams[0].name, callback);
+                footballAPI.getNextFixture(teams[0].id, function (error, fixtures) {
+                    if (fixtures.length > 1) {
+                        var nextFixture = fixtures[0], query = "";
+                        if (nextFixture.status == "IN_PLAY" || nextFixture.status == "FINISHED") {
+                            query = nextFixture.homeTeamName + " " + nextFixture.result.goalsHomeTeam
+                                + " " + nextFixture.result.goalsAwayTeam + " " + nextFixture.awayTeamName;
+                        } else {
+                            query = nextFixture.homeTeamName + " " + nextFixture.awayTeamName;
+                        }
+                        getTweet(teams[0].name, query, function (speechOutput2) {
+                            callback(speechOutput2);
+                        });
+                    } else {
+                        footballAPI.getLastFixture(teams[0].id, function (error, fixtures) {
+                            var speechOutput = " ";
+                            if (error) {
+                                speechOutput += "Your News service is experiencing a problem getting latest score for "
+                                    + teams[0].name + ". Please try again later.";
+                                callback(speechOutput);
+                            }
+                            else if (fixtures.length > 1) {
+                                var lastFixture = fixtures[fixtures.length - 1];
+                                var query = lastFixture.homeTeamName + " " + lastFixture.result.goalsHomeTeam + " "
+                                    + lastFixture.result.goalsAwayTeam + " " + lastFixture.awayTeamName;
+                                getTweet(teams[0].name, query, function (speechOutput2) {
+                                    callback(speechOutput2);
+                                });
+                            } else {
+                                getTweet(teams[0].name, teams[0].name, function (speechOutput2) {
+                                    callback(speechOutput2);
+                                });
+                            }
+                        });
+                    }
+                });
             }
         });
     },
@@ -356,7 +390,8 @@ var addTeam = function (session, response, skillContext, teamName) {
         twitterAPI.getTweet(query, function (error, tweets) {
             var speechOutput = " ";
             if (error) {
-                speechOutput += "Your News service is experiencing a problem getting the latest news for " + teamName + ". Please try again later.";
+                speechOutput += "Your News service is experiencing a problem getting the latest news for "
+                    + teamName + ". Please try again later.";
             } else if (tweets.length < 1) {
                 speechOutput += "No news found for " + teamName + ".";
             } else {
