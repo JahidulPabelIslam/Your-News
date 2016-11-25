@@ -84,7 +84,10 @@ var registerIntentHandlers = function (intentHandlers, skillContext) {
                     });
                 });
             } else {
-                response.tell("Sorry, you have no teams in your favourites list.");
+                session.attributes.speechOutput = "Sorry, you have no teams in your favourites list. what team do you want to add first?";
+                session.attributes.repromptText = "Who do you want to add first?";
+                session.attributes.action = "add";
+                response.ask("Sorry, you have no teams in your favourites list. what team do you want to add first?", "Who do you want to add first?");
             }
         });
     };
@@ -118,7 +121,10 @@ var registerIntentHandlers = function (intentHandlers, skillContext) {
                     });
                 });
             } else {
-                response.tell("Sorry, you have no teams in your favourites list.");
+                session.attributes.speechOutput = "Sorry, you have no teams in your favourites list. what team do you want to add first?";
+                session.attributes.repromptText = "Who do you want to add first?";
+                session.attributes.action = "add";
+                response.ask("Sorry, you have no teams in your favourites list. what team do you want to add first?", "Who do you want to add first?");
             }
         });
     };
@@ -152,7 +158,10 @@ var registerIntentHandlers = function (intentHandlers, skillContext) {
                     });
                 });
             } else {
-                response.tell("Sorry, you have no teams in your favourites list.");
+                session.attributes.speechOutput = "Sorry, you have no teams in your favourites list. what team do you want to add first?";
+                session.attributes.repromptText = "Who do you want to add first?";
+                session.attributes.action = "add";
+                response.ask("Sorry, you have no teams in your favourites list. what team do you want to add first?", "Who do you want to add first?");
             }
         });
     };
@@ -273,8 +282,8 @@ var addTeam = function (session, response, skillContext, teamName) {
             } else if (teams.length < 1) {
                 callback(" Sorry, couldn't find the team you specified.");
             } else {
-                footballAPI.getNextFixture(teams[0].id, function (error, fixtures) {
-                    if (fixtures.length > 1) {
+                footballAPI.getNextFixtures(teams[0].id, function (error, fixtures) {
+                    if (fixtures.length > 0) {
                         var nextFixture = fixtures[0], speechOutput = "",
                             gameDate = new Date(nextFixture.date),
                             currentDate = new Date();
@@ -292,7 +301,7 @@ var addTeam = function (session, response, skillContext, teamName) {
                             return;
                         }
                     }
-                    footballAPI.getLastFixture(teams[0].id, function (error, fixtures) {
+                    footballAPI.getLastFixtures(teams[0].id, function (error, fixtures) {
                         var speechOutput = " ";
                         if (error) {
                             speechOutput += "Your News service is experiencing a problem getting fixture for " + teams[0].name + ". Please try again later.";
@@ -333,7 +342,7 @@ var addTeam = function (session, response, skillContext, teamName) {
             } else if (teams.length < 1) {
                 callback(" Sorry, couldn't find the team you specified.");
             } else {
-                footballAPI.getNextFixture(teams[0].id, function (error, fixtures) {
+                footballAPI.getNextFixtures(teams[0].id, function (error, fixtures) {
                     var speechOutput = " ";
                     if (error) {
                         speechOutput += "Your News service is experiencing a problem getting next fixture for " + teams[0].name + ". Please try again later.";
@@ -376,8 +385,8 @@ var addTeam = function (session, response, skillContext, teamName) {
             } else if (teams.length < 1) {
                 callback(" Sorry, couldn't find the team you specified.");
             } else {
-                footballAPI.getNextFixture(teams[0].id, function (error, fixtures) {
-                    if (fixtures.length > 1) {
+                footballAPI.getNextFixtures(teams[0].id, function (error, nextfixtures) {
+                    if (fixtures.length > 0) {
                         var nextFixture = fixtures[0], query = "";
                         if (nextFixture.status == "IN_PLAY" || nextFixture.status == "FINISHED") {
                             query = nextFixture.homeTeamName + " " + nextFixture.result.goalsHomeTeam
@@ -389,14 +398,14 @@ var addTeam = function (session, response, skillContext, teamName) {
                             callback(speechOutput2);
                         });
                     } else {
-                        footballAPI.getLastFixture(teams[0].id, function (error, fixtures) {
+                        footballAPI.getLastFixtures(teams[0].id, function (error, fixtures) {
                             var speechOutput = " ";
                             if (error) {
                                 speechOutput += "Your News service is experiencing a problem getting latest score for "
                                     + teams[0].name + ". Please try again later.";
                                 callback(speechOutput);
                             }
-                            else if (fixtures.length > 1) {
+                            else if (fixtures.length > 0) {
                                 var lastFixture = fixtures[fixtures.length - 1];
                                 var query = lastFixture.homeTeamName + " " + lastFixture.result.goalsHomeTeam + " "
                                     + lastFixture.result.goalsAwayTeam + " " + lastFixture.awayTeamName;
@@ -424,9 +433,14 @@ var addTeam = function (session, response, skillContext, teamName) {
             } else if (tweets.length < 1) {
                 speechOutput += "No news found for " + teamName + ".";
             } else {
-                speechOutput += "Latest News for " + teamName + ": " + tweets[0].text + ".";
-                var urlExpression = /[-a-zA-Z0-9@:%_\+.~#?&//=]{2,256}\.[a-z]{2,4}\b(\/[-a-zA-Z0-9@:%_\+.~#?&//=]*)?/gi;
-                speechOutput = speechOutput.replace(urlExpression, "");
+                speechOutput += "No news found for " + teamName + ".";
+                for (var i =0; i < tweets.length; i++) {
+                   var urlExpression = /[-a-zA-Z0-9@:%_\+.~#?&//=]{2,256}\.[a-z]{2,4}\b(\/[-a-zA-Z0-9@:%_\+.~#?&//=]*)?/gi;
+                   if (!urlExpression.test(tweets[i].text)) {
+                       speechOutput = " Latest News for " + teamName + ": " + decodeURIComponent(tweets[i].text) + ".";
+                       break;
+                   }
+               }
             }
             callback(speechOutput);
         });
