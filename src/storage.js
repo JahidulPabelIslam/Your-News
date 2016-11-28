@@ -14,7 +14,7 @@ var storage = (function () {
         } else {
             this.data = {
                 teams: [],
-				teamID: {}
+                teamID: {}
             };
         }
         this._session = session;
@@ -79,7 +79,7 @@ var storage = (function () {
                 }
             });
         },
-		resetTeams: function (session) {
+        resetTeams: function (session) {
             return new Teams(session);
         }
     };

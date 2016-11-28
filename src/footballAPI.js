@@ -1,12 +1,12 @@
 "use strict";
 
-var http = require('http'),
+var footballAPI = (function () {
 
-    apibase = 'http://api.football-data.org/v1/teams/',
+    var http = require('http'),
 
-    footballAPI = (function () {
+        apiBase = 'http://api.football-data.org/v1/teams/',
 
-        var getData = function (url, callback) {
+        getData = function (url, callback) {
             http.get(url, function (res) {
                 var apiResponseString = '';
                 console.log('Status Code: ' + res.statusCode);
@@ -24,40 +24,34 @@ var http = require('http'),
 
                     if (apiResponseObject.error) {
                         console.log("API error: " + apiResponseObject.error.message);
-                        callback(apiResponseObject.error.message);
+                        callback(apiResponseObject.error.message, null);
                     } else {
                         callback(null, apiResponseObject);
                     }
                 });
             }).on('error', function (e) {
                 console.log("Communications error: " + e.message);
-                callback(e.message);
+                callback(e.message, null);
             });
         };
 
-        return {
-            getTeam: function (teamName, callback) {
-                teamName = encodeURI(teamName);
-                var queryString = '?name=' + teamName;
+    return {
+        getTeam: function (teamName, callback) {
+            teamName = encodeURI(teamName);
+            var queryString = '?name=' + teamName;
 
-                getData(apibase + queryString, function (error, data) {
-                   callback(error, data.teams);
-                });
-            },
-            getLastFixtures: function (teamID, callback) {
-                var queryString = "/" + teamID + "fixtures?timeFrame=p20";
+            getData(apiBase + queryString, callback);
+        },
+        getPreviousFixtures: function (teamID, callback) {
+            var queryString = teamID + "/fixtures?timeFrame=p20";
 
-                getData(apibase + queryString, function (error, data) {
-                    callback(error, data.fixtures);
-                });
-            },
-            getNextFixtures: function (teamID, callback) {
-                var queryString = "/" + teamID + "fixtures?timeFrame=n20";
+            getData(apiBase + queryString, callback);
+        },
+        getNextFixtures: function (teamID, callback) {
+            var queryString = teamID + "/fixtures?timeFrame=n20";
 
-                getData(apibase + queryString, function (error, data) {
-                    callback(error, data.fixtures);
-                });
-            }
-        };
-    })();
+            getData(apiBase + queryString, callback);
+        }
+    };
+})();
 module.exports = footballAPI;
