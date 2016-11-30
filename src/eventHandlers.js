@@ -13,10 +13,10 @@ var registerEventHandlers = function (eventHandlers, skillContext) {
             var speechOutput = "",
                 repromptText = "";
             if (currentTeams.data.teams.length === 0) {
-                speechOutput = "Hello, Let\'s start. " + textHelper.nextHelp;
+                speechOutput = "Your News, Let\'s start. " + textHelper.nextHelp;
                 repromptText = textHelper.completeHelp;
             } else {
-                speechOutput = "Your News, What can I do for you?";
+                speechOutput = "Your News, What can I do for you today?";
                 repromptText = textHelper.nextHelp;
             }
             session.attributes.speechOutput = speechOutput;

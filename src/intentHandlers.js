@@ -79,6 +79,9 @@ var registerIntentHandlers = function (intentHandlers, skillContext) {
                         if (count >= currentTeams.data.teams.length) {
                             var lastIndex = speechOutput.lastIndexOf(" ");
                             speechOutput = speechOutput.slice(0, lastIndex);
+                            if (skillContext.needMoreHelp) {
+                                response.ask(speechOutput + " Anything else you want to know?", "Is there anything else you want to know?");
+                            }
                             response.tell(speechOutput);
                         }
                     });
@@ -101,6 +104,9 @@ var registerIntentHandlers = function (intentHandlers, skillContext) {
             response.ask("What team do you want the score for?", "what team do you want the score for?");
         }
         getScore(session, response, skillContext, teamName, function (speechOutput) {
+            if (skillContext.needMoreHelp) {
+                response.ask(speechOutput + " Anything else you want to know?", "Is there anything else you want to know?");
+            }
             response.tell(speechOutput);
         });
     };
@@ -116,6 +122,9 @@ var registerIntentHandlers = function (intentHandlers, skillContext) {
                         if (count >= currentTeams.data.teams.length) {
                             var lastIndex = speechOutput.lastIndexOf(" ");
                             speechOutput = speechOutput.slice(0, lastIndex);
+                            if (skillContext.needMoreHelp) {
+                                response.ask(speechOutput + " Anything else you want to know?", "Is there anything else you want to know?");
+                            }
                             response.tell(speechOutput);
                         }
                     });
@@ -138,6 +147,9 @@ var registerIntentHandlers = function (intentHandlers, skillContext) {
             response.ask("What team do you want the next fixture for?", "What team do you want the next fixture for?");
         }
         getNextFixture(session, response, skillContext, teamName, function (speechOutput) {
+            if (skillContext.needMoreHelp) {
+                response.ask(speechOutput + " Anything else you want to know?", "Is there anything else you want to know?");
+            }
             response.tell(speechOutput);
         });
     };
@@ -153,6 +165,9 @@ var registerIntentHandlers = function (intentHandlers, skillContext) {
                         if (count >= currentTeams.data.teams.length) {
                             var lastIndex = speechOutput.lastIndexOf(" ");
                             speechOutput = speechOutput.slice(0, lastIndex);
+                            if (skillContext.needMoreHelp) {
+                                response.ask(speechOutput + " Anything else you want to know?", "Is there anything else you want to know?");
+                            }
                             response.tell(speechOutput);
                         }
                     });
@@ -175,6 +190,9 @@ var registerIntentHandlers = function (intentHandlers, skillContext) {
             response.ask("What team do you want the latest news for?", "What team do you want the latest news for?");
         }
         getLatestNews(session, response, skillContext, teamName, function (speechOutput) {
+            if (skillContext.needMoreHelp) {
+                response.ask(speechOutput + " Anything else you want to know?", "Is there anything else you want to know?");
+            }
             response.tell(speechOutput);
         });
     };
@@ -185,14 +203,14 @@ var registerIntentHandlers = function (intentHandlers, skillContext) {
         } else if (session.attributes && session.attributes.speechOutput) {
             response.tell(session.attributes.speechOutput);
         }
-        response.tell("Sorry, Your News is experiencing a problem getting last statement.");
+        response.tell("Sorry, There is nothing to repeat.");
     };
 
     intentHandlers["AMAZON.HelpIntent"] = function (intent, session, response) {
         if (skillContext.needMoreHelp) {
-            session.attributes.speechOutput = helperFunctions.completeHelp + " So, how can I help?";
+            session.attributes.speechOutput = helperFunctions.completeHelp;
             session.attributes.repromptText = "How can I help?";
-            response.ask(helperFunctions.completeHelp + " So, how can I help?", "How can I help?");
+            response.ask(helperFunctions.completeHelp, "How can I help?");
         }
         response.tell(helperFunctions.completeHelp);
     };
@@ -218,9 +236,9 @@ var addTeam = function (session, response, skillContext, teamName) {
                     response.tell("Sorry, couldn't find the team you specified.");
                 } else {
                     if (currentTeams.data.teamID[data.teams[0].name] !== undefined) {
-                        speechOutput = teamName + " has already joined the list.";
+                        speechOutput = data.teams[0].name + " has already joined the list.";
                         if (skillContext.needMoreHelp) {
-                            response.ask(speechOutput + " What else?", "What else?");
+                            response.ask(speechOutput + " Anything else you want to know or do?", "Is there anything else you want to know or do?");
                         }
                         response.tell(speechOutput);
                     } else {
@@ -228,7 +246,7 @@ var addTeam = function (session, response, skillContext, teamName) {
                         currentTeams.data.teams.push(data.teams[0].name);
                         currentTeams.data.teamID[data.teams[0].name] = data.teams[0].id;
                         if (skillContext.needMoreHelp) {
-                            speechOutput += " What else?";
+                            speechOutput += " Anything else you want to know or do?";
                             repromptText = helperFunctions.nextHelp;
                         }
                         currentTeams.save(function () {
@@ -245,7 +263,7 @@ var addTeam = function (session, response, skillContext, teamName) {
 
     deleteTeam = function (session, response, skillContext, teamName) {
         storage.loadTeams(session, function (currentTeams) {
-            var speechOutput;
+            var speechOutput = "", repromptText = "";
             footballAPI.getTeam(teamName, function (error, data) {
                 if (error) {
                     response.tell("Sorry, Your News service is experiencing a problem. Please try again later.");
@@ -262,10 +280,24 @@ var addTeam = function (session, response, skillContext, teamName) {
                         speechOutput = data.teams[0].name + " has been removed from your favourite\'s teams list.";
 
                         currentTeams.save(function () {
+                            if (skillContext.needMoreHelp) {
+                                speechOutput += " Anything else you want to know or do?";
+                                repromptText = helperFunctions.nextHelp;
+                            }
+                            if (repromptText) {
+                                response.ask(speechOutput, repromptText);
+                            }
                             response.tell(speechOutput);
                         });
                     } else {
                         speechOutput = data.teams[0].name + " isn\'t on your list of favourite teams.";
+                        if (skillContext.needMoreHelp) {
+                            speechOutput += " Anything else you want to know or do?";
+                            repromptText = helperFunctions.nextHelp;
+                        }
+                        if (repromptText) {
+                            response.ask(speechOutput, repromptText);
+                        }
                         response.tell(speechOutput);
                     }
                 }
