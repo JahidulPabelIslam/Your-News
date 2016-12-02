@@ -9,7 +9,6 @@ AddTeamIntent add {Team} to my favourites
 AddTeamIntent add {Team}
 AddTeamIntent add
 
-ResetTeamsIntent reset
 ResetTeamsIntent reset my teams
 ResetTeamsIntent reset all my teams
 ResetTeamsIntent reset my favourites list
@@ -71,8 +70,24 @@ NextFixtureForUserTeamsIntent what is the next fixture for my favourites
 NextFixtureForUserTeamsIntent what is the next fixture for all my favourites
 NextFixtureForUserTeamsIntent what's the next fixture for my favourites
 NextFixtureForUserTeamsIntent what's the next fixture for all my favourites
+NextFixtureForUserTeamsIntent next game for my teams
+NextFixtureForUserTeamsIntent next game for all my teams
+NextFixtureForUserTeamsIntent what is the next game for my teams
+NextFixtureForUserTeamsIntent what is the next game for all my teams
+NextFixtureForUserTeamsIntent what's the next game for my teams
+NextFixtureForUserTeamsIntent what's the next game for all my teams
+NextFixtureForUserTeamsIntent next game for my favourites
+NextFixtureForUserTeamsIntent next game for all my favourites
+NextFixtureForUserTeamsIntent what is the next game for my favourites
+NextFixtureForUserTeamsIntent what is the next game for all my favourites
+NextFixtureForUserTeamsIntent what's the next game for my favourites
+NextFixtureForUserTeamsIntent what's the next game for all my favourites
 
 NextFixtureForTeamIntent next fixture
 NextFixtureForTeamIntent next fixture for {Team}
 NextFixtureForTeamIntent what's the next fixture for {Team}
 NextFixtureForTeamIntent what is the next fixture for {Team}
+NextFixtureForTeamIntent next game
+NextFixtureForTeamIntent next game for {Team}
+NextFixtureForTeamIntent what's the next game for {Team}
+NextFixtureForTeamIntent what is the next game for {Team}

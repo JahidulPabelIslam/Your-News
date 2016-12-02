@@ -4,10 +4,17 @@ var footballAPI = (function () {
 
     var http = require('http'),
 
-        apiBase = 'http://api.football-data.org/v1/teams/',
+        apiBase = 'www.api.football-data.org',
 
         getData = function (url, callback) {
-            http.get(url, function (res) {
+
+            var options = {
+                hostname: apiBase,
+                path: '/v1/teams/'+ url,
+                headers: {'X-Auth-Token': 'hidden'}
+            };
+
+            http.request(options, function (res) {
                 var apiResponseString = '';
                 console.log('Status Code: ' + res.statusCode);
 
@@ -32,7 +39,7 @@ var footballAPI = (function () {
             }).on('error', function (e) {
                 console.log("Communications error: " + e.message);
                 callback(e.message, null);
-            });
+            }).end();
         };
 
     return {
@@ -40,17 +47,17 @@ var footballAPI = (function () {
             teamName = encodeURI(teamName);
             var queryString = '?name=' + teamName;
 
-            getData(apiBase + queryString, callback);
+            getData(queryString, callback);
         },
         getPreviousFixtures: function (teamID, callback) {
             var queryString = teamID + "/fixtures?timeFrame=p20";
 
-            getData(apiBase + queryString, callback);
+            getData(queryString, callback);
         },
         getNextFixtures: function (teamID, callback) {
             var queryString = teamID + "/fixtures?timeFrame=n20";
 
-            getData(apiBase + queryString, callback);
+            getData(queryString, callback);
         }
     };
 })();
