@@ -10,18 +10,15 @@ var registerEventHandlers = function (eventHandlers, skillContext) {
 
     eventHandlers.onLaunch = function (launchRequest, session, response) {
         storage.loadTeams(session, function (currentTeams) {
-            var speechOutput = "",
-                repromptText = "";
+            var speechOutput, repromptSpeech;
             if (currentTeams.data.teams.length === 0) {
-                speechOutput = "Your News, Let\'s start. " + textHelper.nextHelp;
-                repromptText = textHelper.completeHelp;
+                speechOutput = session.attributes.speechOutput = "Your News, Let\'s start. " + textHelper.nextHelp;
+                repromptSpeech = session.attributes.repromptSpeech = textHelper.completeHelp;
             } else {
-                speechOutput = "Your News, What can I do for you today?";
-                repromptText = textHelper.nextHelp;
+                speechOutput = session.attributes.speechOutput = "Your News, What can I do for you today?";
+                repromptSpeech = session.attributes.repromptSpeech = textHelper.nextHelp;
             }
-            session.attributes.speechOutput = speechOutput;
-            session.attributes.repromptText = repromptText;
-            response.ask(speechOutput, repromptText);
+            response.ask(speechOutput, repromptSpeech);
         });
     };
 };

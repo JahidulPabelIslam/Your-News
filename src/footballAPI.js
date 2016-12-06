@@ -10,8 +10,8 @@ var footballAPI = (function () {
 
             var options = {
                 hostname: apiBase,
-                path: '/v1/teams/'+ url,
-                headers: {'X-Auth-Token': 'hidden'}
+                path: '/v1/teams/' + url,
+                headers: {'X-Auth-Token': ''}
             };
 
             http.request(options, function (res) {

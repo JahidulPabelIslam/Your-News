@@ -1,6 +1,13 @@
-chelsea fc
-manchester city fc
-everton fc
-portsmouth fc
-real madrid cf
-swansea fc
+chelsea
+manchester city
+everton
+portsmouth
+real madrid
+swansea
+barcelona
+arsenal
+manchester united
+liverpool
+bayern
+borussia dortmund
+tottenham hotspur
