@@ -1,5 +1,13 @@
 TeamIntent {Team}
 
+UsersTeamsIntent my list
+UsersTeamsIntent my teams
+UsersTeamsIntent all my teams
+UsersTeamsIntent my favourites
+UsersTeamsIntent all my favourites
+UsersTeamsIntent my favourite teams
+UsersTeamsIntent all my favourite teams
+
 AddTeamIntent add {Team} to my teams
 AddTeamIntent add {Team} to my list
 AddTeamIntent add {Team} to my favourites list
@@ -59,35 +67,61 @@ LatestNewsForTeamIntent what's the latest news for {Team}
 LatestNewsForTeamIntent what is the latest news for {Team}
 
 NextFixtureForUserTeamsIntent next fixture for my teams
+NextFixtureForUserTeamsIntent next fixtures for my teams
 NextFixtureForUserTeamsIntent next fixture for all my teams
+NextFixtureForUserTeamsIntent next fixtures for all my teams
 NextFixtureForUserTeamsIntent what is the next fixture for my teams
+NextFixtureForUserTeamsIntent what are the next fixtures for my teams
 NextFixtureForUserTeamsIntent what is the next fixture for all my teams
+NextFixtureForUserTeamsIntent what are the next fixtures for all my teams
 NextFixtureForUserTeamsIntent what's the next fixture for my teams
+NextFixtureForUserTeamsIntent what's the next fixtures for my teams
 NextFixtureForUserTeamsIntent what's the next fixture for all my teams
+NextFixtureForUserTeamsIntent what's the next fixtures for all my teams
 NextFixtureForUserTeamsIntent next fixture for my favourites
+NextFixtureForUserTeamsIntent next fixtures for my favourites
 NextFixtureForUserTeamsIntent next fixture for all my favourites
+NextFixtureForUserTeamsIntent next fixtures for all my favourites
 NextFixtureForUserTeamsIntent what is the next fixture for my favourites
+NextFixtureForUserTeamsIntent what is the next fixtures for my favourites
 NextFixtureForUserTeamsIntent what is the next fixture for all my favourites
+NextFixtureForUserTeamsIntent what is the next fixtures for all my favourites
 NextFixtureForUserTeamsIntent what's the next fixture for my favourites
+NextFixtureForUserTeamsIntent what's the next fixtures for my favourites
 NextFixtureForUserTeamsIntent what's the next fixture for all my favourites
+NextFixtureForUserTeamsIntent what's the next fixtures for all my favourites
 NextFixtureForUserTeamsIntent next game for my teams
+NextFixtureForUserTeamsIntent next games for my teams
 NextFixtureForUserTeamsIntent next game for all my teams
+NextFixtureForUserTeamsIntent next games for all my teams
 NextFixtureForUserTeamsIntent what is the next game for my teams
+NextFixtureForUserTeamsIntent what is the next games for my teams
 NextFixtureForUserTeamsIntent what is the next game for all my teams
+NextFixtureForUserTeamsIntent what is the next games for all my teams
 NextFixtureForUserTeamsIntent what's the next game for my teams
+NextFixtureForUserTeamsIntent what's the next gamse for my teams
 NextFixtureForUserTeamsIntent what's the next game for all my teams
+NextFixtureForUserTeamsIntent what's the next games for all my teams
 NextFixtureForUserTeamsIntent next game for my favourites
+NextFixtureForUserTeamsIntent next games for my favourites
 NextFixtureForUserTeamsIntent next game for all my favourites
+NextFixtureForUserTeamsIntent next games for all my favourites
 NextFixtureForUserTeamsIntent what is the next game for my favourites
+NextFixtureForUserTeamsIntent what is the next games for my favourites
 NextFixtureForUserTeamsIntent what is the next game for all my favourites
+NextFixtureForUserTeamsIntent what is the next games for all my favourites
 NextFixtureForUserTeamsIntent what's the next game for my favourites
+NextFixtureForUserTeamsIntent what's the next games for my favourites
 NextFixtureForUserTeamsIntent what's the next game for all my favourites
+NextFixtureForUserTeamsIntent what's the next games for all my favourites
 
 NextFixtureForTeamIntent next fixture
+NextFixtureForTeamIntent next fixtures
 NextFixtureForTeamIntent next fixture for {Team}
 NextFixtureForTeamIntent what's the next fixture for {Team}
 NextFixtureForTeamIntent what is the next fixture for {Team}
 NextFixtureForTeamIntent next game
+NextFixtureForTeamIntent next games
 NextFixtureForTeamIntent next game for {Team}
 NextFixtureForTeamIntent what's the next game for {Team}
 NextFixtureForTeamIntent what is the next game for {Team}

@@ -26,18 +26,39 @@ var registerIntentHandlers = function (intentHandlers, skillContext) {
         } else if (action == "delete") {
             deleteTeam(session, response, skillContext, teamName);
         } else if (action == "score") {
-            getScore(session, response, skillContext, teamName);
+            latestScoreForTeamHandler(session, response, skillContext, teamName);
         } else if (action == "news") {
-            getLatestNews(session, response, skillContext, teamName);
+            latestNewsForTeamHandler(session, response, skillContext, teamName);
         } else if (action == "fixture") {
-            getNextFixture(session, response, skillContext, teamName);
+            nextFixtureForTeamHandler(session, response, skillContext, teamName);
         } else {
             response.tell("Sorry, got a problem handling your request for " + teamName + ".");
         }
     };
 
+    intentHandlers.UsersTeamsIntent = function (intent, session, response) {
+        var speechOutput, repromptSpeech;
+        var action = session.attributes.action;
+        if (!action) {
+            repromptSpeech = session.attributes.repromptSpeech = "What did you want done with your favourite teams?";
+            speechOutput = session.attributes.speechOutput = "Sorry, " + repromptSpeech;
+            session.attributes.usersTeams = true;
+            session.attributes.teamName = "";
+            response.ask(speechOutput, repromptSpeech);
+        } else if (action == "score") {
+            latestScoreForUsersTeamHandler(session, response, skillContext);
+        } else if (action == "news") {
+            latestNewsForUsersTeamHandler(session, response, skillContext);
+        } else if (action == "fixture") {
+            nextFixtureForUsersTeamsHandler(session, response, skillContext);
+        } else {
+            response.tell("Sorry, got a problem handling your request for favourite teams.");
+        }
+    };
+
     intentHandlers.AddTeamIntent = function (intent, session, response) {
         var newTeamName = intent.slots.Team.value || session.attributes.teamName;
+        session.attributes.usersTeams = false;
         if (!newTeamName) {
             var repromptSpeech, speechOutput;
             repromptSpeech  = session.attributes.repromptSpeech = "what team do you want to add?";
@@ -49,6 +70,7 @@ var registerIntentHandlers = function (intentHandlers, skillContext) {
     };
 
     intentHandlers.ResetTeamsIntent = function (intent, session, response) {
+        session.attributes.usersTeams = false;
         var repromptSpeech, speechOutput;
         storage.resetTeams(session).save(function () {
             speechOutput = "All your favourite teams have been removed.";
@@ -64,6 +86,7 @@ var registerIntentHandlers = function (intentHandlers, skillContext) {
     intentHandlers.DeleteTeamIntent = function (intent, session, response) {
         var teamName = intent.slots.Team.value || session.attributes.teamName,
             repromptSpeech, speechOutput;
+        session.attributes.usersTeams = false;
         if (!teamName) {
             repromptSpeech = session.attributes.repromptSpeech = "what team do you want to delete?";
             speechOutput = session.attributes.speechOutput = "Sorry, didn\'t catch the team name. " + repromptSpeech;
@@ -74,155 +97,60 @@ var registerIntentHandlers = function (intentHandlers, skillContext) {
     };
 
     intentHandlers.LatestScoreForUserTeamsIntent = function (intent, session, response) {
-        var speechOutput = "" , repromptSpeech;
-        storage.loadTeams(session, function (currentTeams) {
-            if (currentTeams.data.teams.length > 0) {
-                var count = 0;
-                currentTeams.data.teams.forEach(function (team) {
-                    getScore(session, response, skillContext, team, function (speechOutput2) {
-                        speechOutput += speechOutput2 + " And";
-                        count++;
-                        if (count == currentTeams.data.teams.length) {
-                            var lastWordIndex = speechOutput.lastIndexOf(" ");
-                            speechOutput = speechOutput.slice(0, lastWordIndex);
-                            if (skillContext.needMoreHelp) {
-                                repromptSpeech = session.attributes.repromptSpeech = " What else do you want to know or do?";
-                                speechOutput = session.attributes.speechOutput = speechOutput + repromptSpeech;
-                                response.ask(speechOutput, repromptSpeech);
-                            }
-                            response.tell(speechOutput);
-                        }
-                    });
-                });
-            } else {
-                repromptSpeech = session.attributes.repromptSpeech = "what team do you want to add first?";
-                speechOutput = session.attributes.speechOutput = "Sorry, you have no teams in your favourites list. " + repromptSpeech;
-                session.attributes.action = "add";
-                response.ask(speechOutput, repromptSpeech);
-            }
-        });
+        latestScoreForUsersTeamHandler(session, response, skillContext);
     };
 
     intentHandlers.LatestScoreForTeamIntent = function (intent, session, response) {
         var teamName = intent.slots.Team.value || session.attributes.teamName,
             repromptSpeech, speechOutput;
-        if (!teamName) {
+        if (!teamName && !session.attributes.usersTeams) {
             repromptSpeech = session.attributes.repromptSpeech = "What team do you want the score for?";
             speechOutput = session.attributes.speechOutput = "Sorry, didn\'t catch the team name. " + repromptSpeech;
             session.attributes.action = "score";
             response.ask(speechOutput, repromptSpeech);
+        } else if (teamName){
+            latestScoreForTeamHandler(session, response, skillContext, teamName);
+        } else {
+            latestScoreForUsersTeamHandler(session, response, skillContext);
         }
-        getScore(session, response, skillContext, teamName, function (speechOutput) {
-            session.attributes.action = "";
-            session.attributes.teamName = "";
-            if (skillContext.needMoreHelp) {
-                repromptSpeech = session.attributes.repromptSpeech = " What else do you want to know or do?";
-                speechOutput = session.attributes.speechOutput = speechOutput + repromptSpeech;
-                response.ask(speechOutput, repromptSpeech);
-            }
-            response.tell(speechOutput);
-        });
     };
 
     intentHandlers.NextFixtureForUserTeamsIntent = function (intent, session, response) {
-        var speechOutput = "", repromptSpeech;
-        storage.loadTeams(session, function (currentTeams) {
-            var count = 0;
-            if (currentTeams.data.teams.length > 0) {
-                currentTeams.data.teams.forEach(function (team) {
-                    getNextFixture(session, response, skillContext, team, function (speechOutput2) {
-                        speechOutput += speechOutput2 + " And";
-                        count++;
-                        if (count >= currentTeams.data.teams.length) {
-                            var lastIndex = speechOutput.lastIndexOf(" ");
-                            speechOutput = speechOutput.slice(0, lastIndex);
-                            if (skillContext.needMoreHelp) {
-                                repromptSpeech = session.attributes.repromptSpeech = " What else do you want to know or do?";
-                                speechOutput = session.attributes.speechOutput = speechOutput + repromptSpeech;
-                                response.ask(speechOutput, repromptSpeech);
-                            }
-                            response.tell(speechOutput);
-                        }
-                    });
-                });
-            } else {
-                repromptSpeech = session.attributes.repromptSpeech = "what team do you want to add first?";
-                speechOutput = session.attributes.speechOutput = "Sorry, you have no teams in your favourites list. " + repromptSpeech;
-                session.attributes.action = "add";
-                response.ask(speechOutput, repromptSpeech);
-            }
-        });
+        nextFixtureForUsersTeamsHandler(session, response, skillContext);
     };
 
     intentHandlers.NextFixtureForTeamIntent = function (intent, session, response) {
         var teamName = intent.slots.Team.value || session.attributes.teamName,
             speechOutput, repromptSpeech;
-        if (!teamName) {
+        if (!teamName && !session.attributes.usersTeams) {
             repromptSpeech = session.attributes.repromptSpeech = "What team do you want the next fixture for?";
             speechOutput = session.attributes.speechOutput = "Sorry, didn\'t catch the team name. " + repromptSpeech;
             session.attributes.action = "fixture";
             response.ask(speechOutput, repromptSpeech);
+        } else if (teamName) {
+            nextFixtureForTeamHandler(session, response, skillContext, teamName);
+        } else {
+            nextFixtureForUsersTeamsHandler(session, response, skillContext);
         }
-        getNextFixture(session, response, skillContext, teamName, function (speechOutput) {
-            session.attributes.action = "";
-            session.attributes.teamName = "";
-            if (skillContext.needMoreHelp) {
-                repromptSpeech = session.attributes.repromptSpeech = " What else do you want to know or do?";
-                speechOutput = session.attributes.speechOutput = speechOutput + repromptSpeech;
-                response.ask(speechOutput, repromptSpeech);
-            }
-            response.tell(speechOutput);
-        });
     };
 
     intentHandlers.LatestNewsForUserTeamsIntent = function (intent, session, response) {
-        storage.loadTeams(session, function (currentTeams) {
-            var speechOutput = " ", repromptSpeech, count = 0;
-            if (currentTeams.data.teams.length > 0) {
-                currentTeams.data.teams.forEach(function (team) {
-                    getLatestNews(session, response, skillContext, team, function (speechOutput2) {
-                        speechOutput += speechOutput2 + " And";
-                        count++;
-                        if (count >= currentTeams.data.teams.length) {
-                            var lastIndex = speechOutput.lastIndexOf(" ");
-                            speechOutput = speechOutput.slice(0, lastIndex);
-                            if (skillContext.needMoreHelp) {
-                                repromptSpeech = session.attributes.repromptSpeech = " What else do you want to know or do?";
-                                speechOutput = session.attributes.speechOutput = speechOutput + repromptSpeech;
-                                response.ask(speechOutput, repromptSpeech);
-                            }
-                            response.tell(speechOutput);
-                        }
-                    });
-                });
-            } else {
-                repromptSpeech = session.attributes.repromptSpeech = "what team do you want to add first?";
-                speechOutput = session.attributes.speechOutput = "Sorry, you have no teams in your favourites list. " + repromptSpeech;
-                session.attributes.action = "add";
-                response.ask(speechOutput, repromptSpeech);
-            }
-        });
+        latestNewsForUsersTeamHandler(session, response, skillContext);
     };
 
     intentHandlers.LatestNewsForTeamIntent = function (intent, session, response) {
         var teamName = intent.slots.Team.value || session.attributes.teamName,
             repromptSpeech, speechOutput;
-        if (!teamName) {
+        if (!teamName && !session.attributes.usersTeams) {
             repromptSpeech = session.attributes.repromptSpeech = "What team do you want the latest news for?";
             speechOutput = session.attributes.speechOutput = "Sorry, didn\'t catch the team name. " + repromptSpeech;
             session.attributes.action = "news";
             response.ask(speechOutput, repromptSpeech);
+        } else if (teamName) {
+            latestNewsForTeamHandler(session, response, skillContext, teamName);
+        } else {
+            latestNewsForUsersTeamHandler(session, response, skillContext);
         }
-        getLatestNews(session, response, skillContext, teamName, function (speechOutput) {
-            session.attributes.action = "";
-            session.attributes.teamName = "";
-            if (skillContext.needMoreHelp) {
-                repromptSpeech = session.attributes.repromptSpeech = " What else do you want to know or do?";
-                speechOutput = session.attributes.speechOutput = speechOutput + repromptSpeech;
-                response.ask(speechOutput, repromptSpeech);
-            }
-            response.tell(speechOutput);
-        });
     };
 
     intentHandlers["AMAZON.RepeatIntent"] = function (intent, session, response) {
@@ -353,6 +281,54 @@ var addTeam = function (session, response, skillContext, teamName) {
         });
     },
 
+    latestScoreForUsersTeamHandler = function (session, response, skillContext) {
+        var speechOutput = "" , repromptSpeech;
+        storage.loadTeams(session, function (currentTeams) {
+            if (currentTeams.data.teams.length > 0) {
+                var count = 0;
+                currentTeams.data.teams.forEach(function (team) {
+                    getScore(session, response, skillContext, team, function (speechOutput2) {
+                        speechOutput += speechOutput2 + " And";
+                        count++;
+                        if (count == currentTeams.data.teams.length) {
+                            var lastWordIndex = speechOutput.lastIndexOf(" ");
+                            speechOutput = speechOutput.slice(0, lastWordIndex);
+                            if (skillContext.needMoreHelp) {
+                                repromptSpeech = session.attributes.repromptSpeech = " What else do you want to know or do?";
+                                session.attributes.action = "";
+                                session.attributes.usersTeams = false;
+                                speechOutput = session.attributes.speechOutput = speechOutput + repromptSpeech;
+                                response.ask(speechOutput, repromptSpeech);
+                            }
+                            response.tell(speechOutput);
+                        }
+                    });
+                });
+            } else {
+                repromptSpeech = session.attributes.repromptSpeech = "what team do you want to add first?";
+                speechOutput = session.attributes.speechOutput = "Sorry, you have no teams in your favourites list. " + repromptSpeech;
+                session.attributes.action = "add";
+                session.attributes.usersTeams = false;
+                response.ask(speechOutput, repromptSpeech);
+            }
+        });
+    },
+
+    latestScoreForTeamHandler = function (session, response, skillContext, teamName) {
+        getScore(session, response, skillContext, teamName, function (speechOutput) {
+            var repromptSpeech;
+            session.attributes.action = "";
+            session.attributes.teamName = "";
+            session.attributes.usersTeams = false;
+            if (skillContext.needMoreHelp) {
+                repromptSpeech = session.attributes.repromptSpeech = " What else do you want to know or do?";
+                speechOutput = session.attributes.speechOutput = speechOutput + repromptSpeech;
+                response.ask(speechOutput, repromptSpeech);
+            }
+            response.tell(speechOutput);
+        });
+    },
+
     getScore = function (session, response, skillContext, teamName, callback) {
         footballAPI.getTeam(teamName, function (teamsError, teamsData) {
             if (teamsError) {
@@ -411,6 +387,52 @@ var addTeam = function (session, response, skillContext, teamName) {
         });
     },
 
+    nextFixtureForUsersTeamsHandler = function (session, response, skillContext) {
+        var speechOutput = "", repromptSpeech;
+        storage.loadTeams(session, function (currentTeams) {
+            var count = 0;
+            if (currentTeams.data.teams.length > 0) {
+                currentTeams.data.teams.forEach(function (team) {
+                    getNextFixture(session, response, skillContext, team, function (speechOutput2) {
+                        speechOutput += speechOutput2 + " And";
+                        count++;
+                        if (count >= currentTeams.data.teams.length) {
+                            var lastIndex = speechOutput.lastIndexOf(" ");
+                            speechOutput = speechOutput.slice(0, lastIndex);
+                            if (skillContext.needMoreHelp) {
+                                repromptSpeech = session.attributes.repromptSpeech = " What else do you want to know or do?";
+                                speechOutput = session.attributes.speechOutput = speechOutput + repromptSpeech;
+                                response.ask(speechOutput, repromptSpeech);
+                            }
+                            response.tell(speechOutput);
+                        }
+                    });
+                });
+            } else {
+                repromptSpeech = session.attributes.repromptSpeech = "what team do you want to add first?";
+                speechOutput = session.attributes.speechOutput = "Sorry, you have no teams in your favourites list. " + repromptSpeech;
+                session.attributes.action = "add";
+                session.attributes.usersTeams = false;
+                response.ask(speechOutput, repromptSpeech);
+            }
+        });
+    },
+
+    nextFixtureForTeamHandler = function (session, response, skillContext, teamName) {
+        getNextFixture(session, response, skillContext, teamName, function (speechOutput) {
+            var repromptSpeech;
+            session.attributes.action = "";
+            session.attributes.teamName = "";
+            session.attributes.usersTeams = false;
+            if (skillContext.needMoreHelp) {
+                repromptSpeech = session.attributes.repromptSpeech = " What else do you want to know or do?";
+                speechOutput = session.attributes.speechOutput = speechOutput + repromptSpeech;
+                response.ask(speechOutput, repromptSpeech);
+            }
+            response.tell(speechOutput);
+        });
+    },
+
     getNextFixture = function (session, response, skillContext, teamName, callback) {
         footballAPI.getTeam(teamName, function (teamsError, teamsData) {
             if (teamsError) {
@@ -454,11 +476,56 @@ var addTeam = function (session, response, skillContext, teamName) {
         });
     },
 
+    latestNewsForUsersTeamHandler = function (session, response, skillContext) {
+        storage.loadTeams(session, function (currentTeams) {
+            var speechOutput = " ", repromptSpeech, count = 0;
+            if (currentTeams.data.teams.length > 0) {
+                currentTeams.data.teams.forEach(function (team) {
+                    getLatestNews(session, response, skillContext, team, function (speechOutput2) {
+                        speechOutput += speechOutput2 + " And";
+                        count++;
+                        if (count >= currentTeams.data.teams.length) {
+                            var lastIndex = speechOutput.lastIndexOf(" ");
+                            speechOutput = speechOutput.slice(0, lastIndex);
+                            if (skillContext.needMoreHelp) {
+                                repromptSpeech = session.attributes.repromptSpeech = " What else do you want to know or do?";
+                                speechOutput = session.attributes.speechOutput = speechOutput + repromptSpeech;
+                                response.ask(speechOutput, repromptSpeech);
+                            }
+                            response.tell(speechOutput);
+                        }
+                    });
+                });
+            } else {
+                repromptSpeech = session.attributes.repromptSpeech = "what team do you want to add first?";
+                speechOutput = session.attributes.speechOutput = "Sorry, you have no teams in your favourites list. " + repromptSpeech;
+                session.attributes.action = "add";
+                session.attributes.usersTeams = false;
+                response.ask(speechOutput, repromptSpeech);
+            }
+        });
+    },
+
+    latestNewsForTeamHandler = function (session, response, skillContext, teamName) {
+        getLatestNews(session, response, skillContext, teamName, function (speechOutput) {
+            var repromptSpeech;
+            session.attributes.action = "";
+            session.attributes.teamName = "";
+            session.attributes.usersTeams = false;
+            if (skillContext.needMoreHelp) {
+                repromptSpeech = session.attributes.repromptSpeech = " What else do you want to know or do?";
+                speechOutput = session.attributes.speechOutput = speechOutput + repromptSpeech;
+                response.ask(speechOutput, repromptSpeech);
+            }
+            response.tell(speechOutput);
+        });
+    },
+
     getLatestNews = function (session, response, skillContext, teamName, callback) {
         footballAPI.getTeam(teamName, function (teamsError, teamsData) {
             if (teamsError) {
-                callback(" Sorry, Your News service is experiencing a problem getting latest news for "
-                    + teamName + ". Please try again later.");
+                callback(" Sorry, Your News service is experiencing a problem getting latest news for " +
+                    teamName + ". Please try again later.");
             } else if (teamsData.teams.length > 1) {
                 callback(" Sorry, too many teams found called " + teamName + ", please say your specific team name.");
             } else if (teamsData.teams.length < 1) {
@@ -468,8 +535,8 @@ var addTeam = function (session, response, skillContext, teamName) {
                     if (nextFixturesData.fixtures.length > 0) {
                         var nextFixture = nextFixturesData.fixtures[0], query = "";
                         if (nextFixture.status == "IN_PLAY" || nextFixture.status == "FINISHED") {
-                            query = nextFixture.homeTeamName + " " + nextFixture.result.goalsHomeTeam
-                                + " " + nextFixture.result.goalsAwayTeam + " " + nextFixture.awayTeamName;
+                            query = nextFixture.homeTeamName + " " + nextFixture.result.goalsHomeTeam +
+                                " " + nextFixture.result.goalsAwayTeam + " " + nextFixture.awayTeamName;
                         } else {
                             query = nextFixture.homeTeamName + " " + nextFixture.awayTeamName;
                         }
@@ -478,14 +545,14 @@ var addTeam = function (session, response, skillContext, teamName) {
                         footballAPI.getPreviousFixtures(teamsData.teams[0].id, function (previousFixturesError, previousFixturesFixtures) {
                             var speechOutput = " ";
                             if (previousFixturesError) {
-                                speechOutput += "Your News service is experiencing a problem getting latest news for "
-                                    + teamsData.teams[0].name + ". Please try again later.";
+                                speechOutput += "Your News service is experiencing a problem getting latest news for " +
+                                    teamsData.teams[0].name + ". Please try again later.";
                                 callback(speechOutput);
                             }
                             else if (previousFixturesFixtures.fixtures.length > 0) {
                                 var lastFixture = previousFixturesFixtures.fixtures[previousFixturesFixtures.fixtures.length - 1];
-                                var query = lastFixture.homeTeamName + " " + lastFixture.result.goalsHomeTeam + " "
-                                    + lastFixture.result.goalsAwayTeam + " " + lastFixture.awayTeamName;
+                                var query = lastFixture.homeTeamName + " " + lastFixture.result.goalsHomeTeam + " " +
+                                    lastFixture.result.goalsAwayTeam + " " + lastFixture.awayTeamName;
                                 getTweet(teamsData.teams[0].name, query, callback);
                             } else {
                                 getTweet(teamsData.teams[0].name, teamsData.teams[0].name, callback);
@@ -501,8 +568,8 @@ var addTeam = function (session, response, skillContext, teamName) {
         twitterAPI.getTweet(query, function (error, tweets) {
             var speechOutput = " ";
             if (error) {
-                speechOutput += "Your News service is experiencing a problem getting the latest news for "
-                    + teamName + ". Please try again later.";
+                speechOutput += "Your News service is experiencing a problem getting the latest news for " +
+                    teamName + ". Please try again later.";
             } else {
                 speechOutput += "No news found for " + teamName + ".";
                 for (var i = 0; i < tweets.length; i++) {

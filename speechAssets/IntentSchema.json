@@ -10,6 +10,9 @@
       ]
     },
     {
+      "intent": "UsersTeamsIntent"
+    },
+    {
       "intent": "AddTeamIntent",
       "slots": [
         {

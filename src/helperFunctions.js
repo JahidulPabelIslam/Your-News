@@ -52,7 +52,7 @@ var textHelper = (function () {
                 var hoursDifference = parseInt((dateDifference / (1000 * 60 * 60)) % 24);
                 var minutesDifference = parseInt((dateDifference / 1000 / 60) % 60);
 
-                if (hoursDifference == 0) {
+                if (hoursDifference === 0) {
 
                     if (minutesDifference > 1) {
                         outputSpeech += "in " + minutesDifference + " minutes at" + gameDate.toTimeString();
@@ -121,15 +121,15 @@ var textHelper = (function () {
             return outputSpeech;
         },
 
-        completeHelp: 'Here\'s some things you can say, add chelsea fc.'
-        + ' delete chelsea fc. latest score for my teams.'
-        + ' latest score for chelsea fc. latest news for my teams.'
-        + ' latest news for chelsea fc. next fixture for my teams.'
-        + ' next fixtures for chelsea fc. reset my teams.'
-        + ' stop. What would you like?',
+        completeHelp: 'Here\'s some things you can say, add chelsea fc.' +
+        ' delete chelsea fc. latest score for my teams.' +
+        ' latest score for chelsea fc. latest news for my teams.' +
+        ' latest news for chelsea fc. next fixture for my teams.' +
+        ' next fixtures for chelsea fc. reset my teams.' +
+        ' stop. What would you like?',
 
-        nextHelp: "You can add a team or delete a team from your favourites list. Or get the score, "
-        + "latest news, or next fixture for a team, or get help. What would you like to do or know?"
+        nextHelp: "You can add a team or delete a team from your favourites list. Or get the score, " +
+        "latest news, or next fixture for a team, or get help. What would you like to do or know?"
     };
 
 })();
