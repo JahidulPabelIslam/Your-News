@@ -575,7 +575,8 @@ var addTeam = function (session, response, skillContext, teamName) {
                 for (var i = 0; i < tweets.length; i++) {
                     var urlExpression = /[-a-zA-Z0-9@:%_\+.~#?&//=]{2,256}\.[a-z]{2,4}\b(\/[-a-zA-Z0-9@:%_\+.~#?&//=]*)?/gi;
                     if (!urlExpression.test(tweets[i].text)) {
-                        speechOutput = " Latest News for " + teamName + ": " + tweets[i].text + ".";
+                        var tweetDate = new Date(tweets[i].created_at);
+                        speechOutput = " Latest News for " + teamName + " from " + tweetDate.toDateString() + " at " + tweetDate.toTimeString() + ": " + tweets[i].text + ".";
                         break;
                     }
                 }
